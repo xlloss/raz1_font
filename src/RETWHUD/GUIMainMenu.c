@@ -349,194 +349,30 @@ int32_t GRAPHICS_DrawVgImage_PrepareImage()
 void GUI_GraphicsTask_Main(uint32_t OpMode)
 {
     int32_t         ret;
- 
-// 					 	printf("Size of GUI_func_table %d\n",sizeof GUI_func_table/sizeof (uint32_t) );
-#if 1
-		if(OpMode != LastMode)
-			{
-			ModeEntryCnt =0;
-			Milisec_ModeEntry=0;
-			LastMode = OpMode;
-			}
-#endif
 
-									G_CharShearX=0.5;
-									G_CharShearY=0.0;
- 									G_CharScale = 2.0;
- 					 									
- 									
-				ModeEntryCnt+=1;
-			if(ModeEntryCnt>6000)
-			ModeEntryCnt=6000;
-			
- 									
- 
-#if 0									
-		switch (OpMode)
-		{
-				case 0:
- 							RETW_GUI_PoliconFillScreen(0,0,800,480,0x101010ff);
-// 							RETW_GUI_DottingFillScreen(0,0,800,480,0x002000ff);
-		 					RETW_GUI_Meter_0(speedcount,220);
-							R_TXTR_DrawStringMain( "Motor Meter 0" , 13, 10, 30, 0xFFFFFFFF);
-							DspBMP(_RLOGO_ADDR, 590,420, VG_Back_FrameBuffer, 0,0);			
-							break;	
-				case 1:
- 							RETW_GUI_PoliconFillScreen(0,0,800,480,0x010101ff);
-// 							RETW_GUI_DottingFillScreen(0,0,800,480,0x002000ff);
-		 					RETW_GUI_Meter_Speed_5(speedcount,220);
-							R_TXTR_DrawStringMain( "Motor Meter 5" , 13, 10, 30, 0xFFFFFFFF);
-							DspBMP(_RLOGO_ADDR, 590,420, VG_Back_FrameBuffer, 0,0);			
-							break;				 
-				case 2:
- 							RETW_GUI_PoliconFillScreen(0,0,800,480,0x101010ff);	
-		 					RETW_GUI_Clock_1();
-		 					R_TXTR_DrawStringMain( "Clock1" , 6, 10, 30, 0xFFFFFFFF);			
-							break; 
-				case 3:
- 							RETW_GUI_PoliconFillScreen(0,0,800,480,0x104060ff);	
-		 					RETW_GUI_Clock_2();
-		 					R_TXTR_DrawStringMain( "Clock2" , 6, 10, 420, 0xFFFFFFFF);				 
-							break; 
-				case 4:
- 							RETW_GUI_PoliconFillScreen(0,0,800,480,0x101010ff);	
-		 					RETW_GUI_Clock_0();
-		 					break;
-//									R_TXTR_DrawStringMain( "HUD" , 3, 10, 30, 0xFFFFFFFF);	
-				case 5:
- 							RETW_GUI_PoliconFillScreen(0,0,800,480,0x101010ff);	
-		 					RETW_GUI_Clock_3();
-		 					break;
-//									R_TXTR_DrawStringMain( "HUD" , 3, 10, 30, 0xFFFFFFFF);	
-						 
-				case 6:
- 							RETW_GUI_PoliconFillScreen(0,0,800,480,0x101010ff);	
-		 					RETW_GUI_Meter_1(speedcount,220);
-//									R_TXTR_DrawStringMain( "HUD" , 3, 10, 30, 0xFFFFFFFF);			
-							break; 
-				case 7:
- 							RETW_GUI_PoliconFillScreen(0,0,800,480,0x004000ff);	
-		 					RETW_GUI_Meter_2(speedcount,220);
-//									R_TXTR_DrawStringMain( "Meter" , 5, 10, 420, 0xFFFFFFFF);				 
-							break; 
-				case 8:
- 							RETW_GUI_PoliconFillScreen(0,0,800,480,0x400000ff);	
-		 					RETW_GUI_Meter_3(speedcount,220);
-//									R_TXTR_DrawStringMain( "Meter" , 5, 10, 420, 0xFFFFFFFF);				 
-							break; 
-												
-				case 9:
-							Audio_MainLoop(); 
-//									R_TXTR_DrawStringMain( "Playing MP3" , 11, 10, 30, 0xFFFFFFFF);							
-							break;
-				default:
-							break;
-		} 
+	if(OpMode != LastMode)
+	{
+		ModeEntryCnt =0;
+		Milisec_ModeEntry=0;
+		LastMode = OpMode;
+	}
 
-#else
+	G_CharShearX=0.5;
+	G_CharShearY=0.0;
+ 	G_CharScale = 2.0;
+	ModeEntryCnt+=1;
 
+	if(ModeEntryCnt>6000)
+		ModeEntryCnt=6000;
 
-#if 0
-					if(CleanBufferFlag==1)
-							{
-     					RETW_GUI_PoliconFillScreen(0,0,800,480,0x200000ff);
-     										CleanBufferFlag=2;
-     					}
-					else if(CleanBufferFlag==2)
-							{
-     					RETW_GUI_PoliconFillScreen(0,0,800,480,0x200000ff);
-     										CleanBufferFlag=0;
-     					}     					
-#endif
+	if(ModeEntryCnt<3)
+    	RETW_GUI_PoliconFillScreen(0,0,800,480,0x200000ff);	
 
-					if(ModeEntryCnt<3)
-     			RETW_GUI_PoliconFillScreen(0,0,800,480,0x200000ff);	
-//    		GL_FillScreen(0x101010FF);
-  				GUI_func_table[OpMode](speedcount,220);
-
-#endif
- 
-
-#if 0						//Debug use	
-
-  								G_CharScale = 4.0;		
-									G_CharShearX = 0.0;
-									G_CharShearY = 0.0;
-									RETW_GUI_DrawScriptNumber(80, 80, OpMode, 24, 0x00FF00ff, 1);
-#endif
- 
-// GRAPHICS_DrawVgImage(0);
-// GRAPHICS_DrawVgImage(1);
-
-//								DrawImage(framecount);
-								
- //       		  	vgFinish();
-						GUI_GraphicsTask_PostMenu();
- 
- 
-
- 
-
-// 					GL_DrawingArc();
- 					
-// 					GL_DrawingPoliline();
- 					
-//          TrVg_DrawingRenderQuality();
-// 			   TrVg_DrawingFilters();
- 			
-// 					RETW_GUI_Meter_GasolineIndicator( 350, 140, EngineRPM +240 -1);		
-
-
-//      	TrVg_DrawingEllipticalArcs();
-
-
-//				TrVg_DrawingColorPaint();
-//   		TrVg_DrawingLine();
-    		
-//        TrVg_DrawingCircleRadiant(400,240,10,10,0xFF0030ff);		 	
-	
-//       	TrVg_DrawingStraightLine();
- 
-//        TrVg_DrawingPolyconFill();
-
-//    		TrVg_DrawingStroke();
-
-		
-//   	TrVg_DrawingText();
-
-//   	TrVg_DrawingRadialGradien();
-
-
-						
-//		TrVg_DrawingMasking();
-		
-//		TrVg_DrawingScissoring();
-		
-
-
-
-//			FillScreenColorBlock(currentframe);
-//				FillScreenColorBar(currentframe);
-
-//			TrVg_DrawingTextImage();
-
-#if 0
-				TrVg_DrawingPicture(160,160);
-				
-//				TrVg_DrawingFiltersClock160160(630,10);
-#endif
- 
-    		framecount++;
-    		totalframecnt+=1;
- //   if(framecount%3 == 0)
-
-#if 0			//Debug use
-  								G_CharScale = 1.0;		
-									G_CharShearX = 0.0;
-									G_CharShearY = 0.0;
-
- 									RETW_GUI_DrawScriptNumber(400, 30, totalframecnt, 24, 0xFFFF00ff, 1);
-#endif
+  	GUI_func_table[OpMode](speedcount,220);
+	GUI_GraphicsTask_PostMenu();
+  
+    framecount++;
+    totalframecnt+=1;
  
     if (framecount >= FRAME_COUNT_MAX)
     { 
@@ -618,24 +454,20 @@ void GUI_GraphicsTask_KeyResponse(uint32_t KeyInCode)
 
 void GUI_GraphicsTask_PostMenu()
 {
-			uint32_t i,j,k;
-			uint32_t loc_x,loc_y;
-			uint32_t CenterX,CenterY;
-			
-			uint32_t LengthX,LengthY;
-			uint32_t font_width;
-			uint32_t Item_Width;			
-			uint32_t LocX[8] = {87, 160, 210, 290,340,390, 590, 720};
-			char TempString[64];
- 
-			st_VGDrawingParameter	VGParameter; 
- 
-		if(SetupMenuIndex.OnOff > 0 )
- 		{
-//				GL_DrawingRoundRectangle();			
-				GL_DrawingRoundRectanglePara(20 , 20 , 760, 180, 20 , 20 ,	0xFFFFFFF0);
-				
-// 			printf(" point %d \n",SetupMenuIndex.SetupItemPoint );
+	uint32_t i,j,k;
+	uint32_t loc_x,loc_y;
+	uint32_t CenterX,CenterY;
+	uint32_t LengthX,LengthY;
+	uint32_t font_width;
+	uint32_t Item_Width;			
+	uint32_t LocX[8] = {87, 160, 210, 290,340,390, 590, 720};
+	char TempString[64];
+	st_VGDrawingParameter	VGParameter; 
+		
+		
+	if(SetupMenuIndex.OnOff > 0 )
+ 	{
+		GL_DrawingRoundRectanglePara(20 , 20 , 760, 180, 20 , 20 ,	0xFFFFFFF0);
  
 #if 1
  						Item_Width = 760/GUI_SetupItem_MAX;
@@ -798,7 +630,7 @@ void GUI_GraphicsTask_PostMenu()
 								
 #endif
 
-#if 1		//UnderLine BAR for selected 
+#if 1//UnderLine BAR for selected 
 
 					if(SetupMenuIndex.OnOff == 1 )
 					{
@@ -845,16 +677,12 @@ void GUI_GraphicsTask_PostMenu()
 							GL_DrawingPolyconFill( &VGParameter);	
 					}
 #endif 	//Triangle up and down
-
-
-	
-
- 		}			//if(SetupMenuIndex.OnOff > 0)
+ 	}
  		
 		if(SetupMenuIndex.OnOff == 2 )
  		{
 
-#if 1		//Triangle up	and down inside BAR
+#if 1//Triangle up	and down inside BAR
 
 							CenterX= LocX[SetupMenuIndex.SetupItemPoint];
 							CenterY = loc_y+12;
@@ -906,160 +734,7 @@ void GUI_GraphicsTask_PostMenu()
 							GL_DrawingPolyconFill( &VGParameter);	
 #endif 	//Triangle up and down
 
-
-
-
-
-#if 0	 //Circle to display adjused value
- 					VGParameter.PaintMode = VG_PAINT_TYPE_RADIAL_GRADIENT;
- 					
-					VGParameter.PathDrawingData[0]= 400;
-					VGParameter.PathDrawingData[1]= 240;
-					VGParameter.PathDrawingData[2]= 200;							/*	width			*/
-					VGParameter.PathDrawingData[3]= 200;							/*	height		*/
-					VGfloat SrampStops[30] = 				{ 	0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-																 		 					0.85f, 1.0f, 1.0f, 1.0f, 1.0f, 		
-																 		 					0.90f, 0.0f, 0.6f, 0.0f, 1.0f,
-																		 					0.95f, 0.0f, 0.6f, 0.0f, 1.0f, 		
-																		 					0.98f, 0.5f, 1.0f, 0.5f, 1.0f, 		
-																		 					1.0f, 0.0f, 1.0f, 0.0f, 1.0f,};
-					for(i=0;i<30;i++)
-					VGParameter.GradientStep[i]=SrampStops[i]; 
-					VGParameter.GradientPoints = 30;
-					
-					VGParameter.GradientStartEnd[0] = 400;
-					VGParameter.GradientStartEnd[1] = 240;
-					VGParameter.GradientStartEnd[2] = 400;
-					VGParameter.GradientStartEnd[3] = 240;
-					VGParameter.GradientStartEnd[4] = 200/2;					
- 
-				 GL_DrawingCircleFill( &VGParameter);	
-#endif
-
-#if 0		//Triangle up	and down inside circle
-
- 							VGParameter.PathPoints=0;
- 							VGParameter.GradientPoints=0;
-							j=0;
-							VGParameter.PathDrawingData[j]  = 400; 
-							VGParameter.PathDrawingData[j+1] = 240+80;
-							VGParameter.PathPoints+=1;
-							j+=2;			
- 
-							VGParameter.PathDrawingData[j]  = 400-15; 
-							VGParameter.PathDrawingData[j+1] = 240+60;
-							VGParameter.PathPoints+=1;
-							j+=2;				
- 
-							VGParameter.PathDrawingData[j]  = 400+15; 
-							VGParameter.PathDrawingData[j+1] = 240+60;
-							VGParameter.PathPoints+=1;
-							j+=2;		
-
- 							VGParameter.PaintMode = VG_PAINT_TYPE_COLOR;
- 							VGParameter.FillColor = 0x0000FF00;
- 	 						VGParameter.AlphaColor = 0x000000f0;
-							GL_DrawingPolyconFill( &VGParameter);	
-
- 							VGParameter.PathPoints=0;
- 							VGParameter.GradientPoints=0;
-							j=0;
-							VGParameter.PathDrawingData[j]  = 400; 
-							VGParameter.PathDrawingData[j+1] = 240-80;
-							VGParameter.PathPoints+=1;
-							j+=2;			
- 
-							VGParameter.PathDrawingData[j]  = 400-15; 
-							VGParameter.PathDrawingData[j+1] = 240-60;
-							VGParameter.PathPoints+=1;
-							j+=2;				
- 
-							VGParameter.PathDrawingData[j]  = 400+15; 
-							VGParameter.PathDrawingData[j+1] = 240-60;
-							VGParameter.PathPoints+=1;
-							j+=2;		
-
- 							VGParameter.PaintMode = VG_PAINT_TYPE_COLOR;
- 							VGParameter.FillColor = 0x0000FF00;
- 	 						VGParameter.AlphaColor = 0x000000f0;
-							GL_DrawingPolyconFill( &VGParameter);	
-#endif 	//Triangle up and down
-
-
-#if 0	//Dispay Adjusted Value inside circle
-									//printf("SYSTEM Year =%x\n",SYSTEMTIME.Year);
-									MenuDataPage[0].Value = SYSTEMTIME.Year;
-									MenuDataPage[1].Value = SYSTEMTIME.Month;      							
-									MenuDataPage[2].Value = SYSTEMTIME.Day;         
-									MenuDataPage[3].Value = SYSTEMTIME.Hour;                       
-									MenuDataPage[4].Value = SYSTEMTIME.Minute;    
-									MenuDataPage[5].Value = SYSTEMTIME.Second; 
- 
-									//printf("Menu Year =%x\n",MenuDataPage[0].Value);
- 
-									G_CharShearX=0.1;
-									G_CharShearY=0.0;
- 									G_CharScale = 2.0;		
- 									
-									font_width = 24;
-
-									#if 0 									
- 									if(framecount<15)
- 											{
- 									G_CharScale= 	G_CharScale + 0.03* framecount;
- 									font_width = font_width + framecount/2;
- 											}
- 									else{
- 									G_CharScale= 	G_CharScale + 0.03*(30-framecount );
-									font_width = font_width +(30-framecount);
-											}
- 									#endif
- 									
- 									loc_x	= 400 - font_width*(MenuDataPage[SetupMenuIndex.SetupItemPoint].DispDigit/2);
- 									loc_y = 240-font_width/2;
- 					
- 
- 									if(SetupMenuIndex.SetupItemPoint<6)
- 									{
- 											for(i=0;i<MenuDataPage[SetupMenuIndex.SetupItemPoint].DispDigit;i++)
- 											{									 
-  											TempString[i] = (char) ((( MenuDataPage[SetupMenuIndex.SetupItemPoint].Value >> ((MenuDataPage[SetupMenuIndex.SetupItemPoint].DispDigit-1-i)*4) )& 0x000F) + 0x30) ;																		
- 											}
- 											R_TXTR_DrawStringMain( &TempString[0], MenuDataPage[SetupMenuIndex.SetupItemPoint].DispDigit, loc_x, loc_y, 0x0000FFff);   
- 									}
- 
-									G_CharShearX=0.1;
-									G_CharShearY=0.0;
- 									G_CharScale = 2.0;	
-									if(SYSTEMTIME.Weekday==0)
-									R_TXTR_DrawStringMain( "SUN" , 3, 10, 100, 0x0000FFff);
-									else if(SYSTEMTIME.Weekday==1)
-									R_TXTR_DrawStringMain( "MON" , 3, 10, 100, 0xFFFF00ff);
-									else if(SYSTEMTIME.Weekday==2)
-									R_TXTR_DrawStringMain( "TUE" , 3, 10, 100, 0xFFFF00ff);
-									else if(SYSTEMTIME.Weekday==3)
-									R_TXTR_DrawStringMain( "WED" , 3, 10, 100, 0xFFFF00ff);
-									else if(SYSTEMTIME.Weekday==4)
-									R_TXTR_DrawStringMain( "THU" , 3, 10, 100, 0xFFFF00ff);
-									else if(SYSTEMTIME.Weekday==5)
-									R_TXTR_DrawStringMain( "FRI" , 3, 10, 100, 0xFFFF00ff);
-									else if(SYSTEMTIME.Weekday==6)
-									R_TXTR_DrawStringMain( "SAT" , 3, 10, 100, 0x00FF00ff);
-									
-#endif		
-
-
-
- 		}			//if(SetupMenuIndex.OnOff == 2)
-							
-									
- // 						R_GUI_OpenVGDrawCharacter(loc_x, loc_y, 0x41, 0x0000FFFF, 1);
- 
-//							printf(" char %x \n", *(unsigned char*)( &MenuDataPage[SetupMenuIndex.SetupItemPoint].CharString +i )  );
-//							R_GUI_OpenVGDrawCharacter(loc_x, loc_y, *(unsigned char*)( &MenuDataPage[SetupMenuIndex.SetupItemPoint].CharString +i ), 0xFFFFFFFF, 1); 		
-  						
-//  						R_GUI_OpenVGDrawChar	(loc_x, loc_y+50, *(unsigned char*)( &MenuDataPage[SetupMenuIndex.SetupItemPoint].CharString +i ), 0x0000FFff, 1); 				
- 
+ 		}
 }
 
 

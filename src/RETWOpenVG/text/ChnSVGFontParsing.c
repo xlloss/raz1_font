@@ -310,15 +310,20 @@ RETW_Demo()
 	
 	uint32_t x,y;
 	
-	for(i=0;i<10;i++)
-	{
-		
-		x=i*40;
-		y=i*20;
-		
-		RETW_DrawingChineseOneChar(0,i, x, y);
+	//for(i=0;i<10;i++)
+	//{
+	//	
+	//	x=i*40;
+	//	y=i*20;
+	//	
+	//	RETW_DrawingChineseOneChar(0,i, x, y);
+	//
+	//}
+
+	x = 140;
+	y = 50;
 	
-	}
+	RETW_DrawingChineseOneChar(0, 2, x, y);
 }
 
 
@@ -951,22 +956,19 @@ int RETW_DrawingChineseOneChar( uint32_t StrNo, uint32_t NumberChar, uint32_t Dr
     }
 #endif
 
-					i = NumberChar;	
-    			/*** Glyph of the character 'Chun' ***/
-    			path = vgCreatePath( VG_PATH_FORMAT_STANDARD, VG_PATH_DATATYPE_F, 1.0f, 0.0f, 0, 0, VG_PATH_CAPABILITY_ALL ) ;
-    			/* Appends data to the path */
-    			vgAppendPathData( path, svg_CMD_PATH_LUT[DSPCHN_STR[StrNo].Start_PTR+i].CMD_NUM , svg_CMD_PATH_LUT[DSPCHN_STR[StrNo].Start_PTR+i].CMD_ADDR,  svg_CMD_PATH_LUT[DSPCHN_STR[StrNo].Start_PTR+i].PATH_ADDR ) ;
-    			/* Creates a glyph and assigns the given path to a glyph that corresponds to the specified index */
-    			vgSetGlyphToPath( ChnFontHdl, ( VGuint )SampleChnText[DSPCHN_STR[StrNo].Start_PTR+i], path, VG_FALSE, Origin, Escapement );
-    			/* Destroy the path */
-    			vgDestroyPath( path );
+	i = NumberChar;	
+    /*** Glyph of the character 'Chun' ***/
+    path = vgCreatePath( VG_PATH_FORMAT_STANDARD, VG_PATH_DATATYPE_F, 1.0f, 0.0f, 0, 0, VG_PATH_CAPABILITY_ALL ) ;
+    /* Appends data to the path */
+    vgAppendPathData( path, svg_CMD_PATH_LUT[DSPCHN_STR[StrNo].Start_PTR+i].CMD_NUM , svg_CMD_PATH_LUT[DSPCHN_STR[StrNo].Start_PTR+i].CMD_ADDR,  svg_CMD_PATH_LUT[DSPCHN_STR[StrNo].Start_PTR+i].PATH_ADDR ) ;
+    /* Creates a glyph and assigns the given path to a glyph that corresponds to the specified index */
+    vgSetGlyphToPath( ChnFontHdl, ( VGuint )SampleChnText[DSPCHN_STR[StrNo].Start_PTR+i], path, VG_FALSE, Origin, Escapement );
+    /* Destroy the path */
+    vgDestroyPath( path );
  
-#if 1
- 				G_CharScale = 1.0;
-#endif 
-				
-				G_CharShearX=0.0;
-				G_CharShearY=0.0;	
+ 	G_CharScale = 1.0;
+	G_CharShearX=0.0;
+	G_CharShearY=0.0;	
  
     /*** Text color ***/
     /* Create a new paint object */
@@ -983,18 +985,9 @@ int RETW_DrawingChineseOneChar( uint32_t StrNo, uint32_t NumberChar, uint32_t Dr
     /* Set the current matrix to the identity matrix  */
  
     vgLoadIdentity() ;
-//    vgTranslate( 300.0f, 70.0f );
-			vgTranslate( Loc_X, Loc_Y );    
-    vgScale( G_CharScale, G_CharScale ) ;
-//    vgSetColor( fill, ( VGuint )0xFF0000FF ) ;          /* Red */
-//    vgShear(G_CharShearX, G_CharShearY);
-    
-    
-    /* Set the glyph origin */
-//    vgSetfv( VG_GLYPH_ORIGIN, 2, Origin ) ;
-    
-    /* Renders a sequence of glyphs specified by the array of the indices */
-//    vgDrawGlyphs(  ChnFontHdl, ( VGint )( sizeof SampleChnText / sizeof( VGuint )),  SampleChnText, NULL, NULL, VG_FILL_PATH, VG_FALSE ) ;
+	vgTranslate( Loc_X, Loc_Y );    
+    //vgScale( G_CharScale, G_CharScale ) ;
+    vgScale( 2.0, 1.0 ) ;
     vgDrawGlyphs(  ChnFontHdl, ( VGint )1,  &SampleChnText[DSPCHN_STR[StrNo].Start_PTR + NumberChar], NULL, NULL, VG_FILL_PATH, VG_FALSE ) ;
  
     /* Destroy the paint objects */

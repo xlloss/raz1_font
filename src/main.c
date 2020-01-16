@@ -94,137 +94,42 @@ extern uint8_t _Addr1E_ChnFontTAB[];
 int_t main(void)
 {
 
-		uint32_t i,j;
+	uint32_t i,j;
     /* ==== LED initial setting ==== */ 
     uint8_t g_iic_dev_io;
     uint8_t g_iic_w_value;
     LedInit(); 
 
-    /* Initialise the IIC channel for writing to the port expander */
-   // R_RIIC_rza1h_rsk_init();
- 
     /* Initialize LED on/off flag */
     main_led_flg = MAIN_LED_ON;
  
     /* ==== Initialise OS timer (channel 0) ==== */
-	 	R_OSTM_Init(DEVDRV_CH_0, OSTM_MODE_INTERVAL, 1);
+	R_OSTM_Init(DEVDRV_CH_0, OSTM_MODE_INTERVAL, 1);
 
     /* ==== Start OS timer (channel 0) ==== */
-	 	R_OSTM_Open(DEVDRV_CH_0);
+	R_OSTM_Open(DEVDRV_CH_0);
  
     /* ==== LED On indicates sample is running ==== */
-    LedOn();
-    LedOn1();
-    LedOn2();
-while(0)			//for GR peach
-		{
-				TmrDelay_Graphics(500);
-				LedOff2();
-				LedOff();
-				TmrDelay_Graphics(500);
-				LedOn2();				
-				LedOn();
-		}
     /* Initialise the ADC */
     RTC_Init();
  
-    /* Set the alarm */
-    Set_Alarm(0x00115940, 0x01, 0x01, 0x01, 0x2017);
-
     /* Start counting */
     RTC_Counter_CLK(RTC_COUNTER_START);
   
 //	Userdef_OSTM0_GenRandomNum();    
     printf("\n Entering RZ/A1H Open VG Sample Program.\n");
  
-//  TestMemoryM(0x08000000,0x02000000);							//start from 0x08000000 , test 32M bytes
  
- 		FlushTerminalKeyBuff_SCIF2();
- 		FlushTerminalKeyBuff_SCIF1();		
-		R_ADC_Open();
-  
-#if 1
-    /* for RSK 		Audio MP3*/
-    {
-
-    /* Initialise the IIC channel */
-    RIIC_PORTX_Init();        //enable Port P1_6, P1_7 for SCL3,SDA3
-
-    /* Configure the port mode of each I/O of the port expander */
-    g_iic_dev_io  = 0xFFu;              /* Indicates which I/O is to be modified */
-    g_iic_w_value = 0x10u;              /* IO[0] = PX1_EN0 Enable        = 1 (Selects IC37/IC38 MUXes BL[x] signals. Also enables PMOD connectors as they use the SPI from IC38)
-                                           IO[1] = PX1_EN1 Enable        = 0 (OFF)
-                                           IO[2] = TFT_CS                = 0 (Optional chip select for connecting to TFTs which use SPI. The RSK TFT is not configured by SPI.)
-                                           IO[3] = PX1_EN3 Enable        = 0 (Selects Audio signals. If set to 1, selects optional PWM signals.)
-                                           IO[4] = USB_OVR_CURRENT       = 1 (Input signal from IC7. By default it is pulled high. It signals overcurrent or thermal shutdown conditions.)
-                                           IO[5] = USB_PWR_ENA           = 0 (Pulled low by default, enabling power to VBUS0. JP11 needs to be shorted)
-                                           IO[6] = USB_PWR_ENB           = 0 (Pulled low by default, enabling power to VBUS1. JP12 needs to be shorted)
-                                           IO[7] = PX1_EN7               = 0 (Pulled low by default, selecting A18 - A21 lines. If set to 1, SGOUTx signals are selected.) */
-
-    Sample_RIIC_PortExpAccess(0x41u, 1u, g_iic_dev_io, g_iic_w_value);
-    }
-    
-
-  
-//    R_DAC_MAX9856_Init();                   /* for RSK */
-
-while(0)
-{
-    g_iic_dev_io  = 0xFFu;              /* Indicates which I/O is to be modified */
-    g_iic_w_value = 0x07u;              /* bit7-0:  x, x, x, x, x, LED3,LED2,LED1*/
-    Sample_RIIC_PortExpAccess(0x40u, 1u, g_iic_dev_io, g_iic_w_value);
- 
-    				TmrDelay_Graphics(1000);
-
-    g_iic_dev_io  = 0xFFu;              /* Indicates which I/O is to be modified */
-    g_iic_w_value = 0x00u;              /* bit7-0:  x, x, x, x, x, LED3,LED2,LED1*/
-    Sample_RIIC_PortExpAccess(0x40u, 1u, g_iic_dev_io, g_iic_w_value);
- 
-    				TmrDelay_Graphics(1000);
-			    
-}
-
-#endif
- 
-
-// 		Audio_Sample_Main();    
-       
-#if 1 
-
-while(0)
-{
-KeyScanning_Main();
-Audio_MainLoop();
-} 
-
-// 			DumpData(0x18800000+0x00681bA0,0x100);
- 			
-//  		while(RETW_SVGFontParsing("#x5c07",6)==0) {}
-//      while(RETW_SVGFontParsing("#x8ecd",6)==0) {}
-//      while(RETW_SVGFontParsing("#x745e",6)==0) {}
-
-#if 1
- 			RETW_ChnSVGFontOpen(_Addr1_ChnFontStr, _Addr1E_ChnFontStr-_Addr1_ChnFontStr, _Addr1_ChnFontTAB, _Addr1E_ChnFontTAB-_Addr1_ChnFontTAB);
-#endif
- 						 
-//			GRAPHICS_VideoSample();   
-//    	printf("Entering RSCAN_Init...\n");
-//			RSCAN_Init();
-//    	printf("Exited RSCAN_Init...\n");
- 
-
-      GRAPHICS_VideoSample();
- 			
-  	  Graphics_OpenVGSample();				//originally this routine is called by above GRAPHICS_VideoSample()
-  	  
-  	  
-#endif
-    /* ==== Receive command, activate sample software ==== */
-//    Sample_VDC5_Main();
-
-    /* ==== LED Off indicates sample is complete ==== */
-   
- 
+ 	FlushTerminalKeyBuff_SCIF2();
+ 	FlushTerminalKeyBuff_SCIF1();		
+	R_ADC_Open();
+ 	RETW_ChnSVGFontOpen(_Addr1_ChnFontStr,
+		_Addr1E_ChnFontStr - _Addr1_ChnFontStr,
+		_Addr1_ChnFontTAB,
+		_Addr1E_ChnFontTAB - _Addr1_ChnFontTAB);
+ 						
+    /* GRAPHICS_VideoSample(); */
+  	Graphics_OpenVGSample();
     return 0;
 }
 

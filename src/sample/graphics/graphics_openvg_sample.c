@@ -44,8 +44,8 @@ Includes   <System Includes> , "Project Includes"
 #include    "ncg_defs.h"
 #include    "ncg_memory.h"
 
-int32_t CurrentDisplayFrame=0; 
-extern uint32_t OperatingMode; 
+int32_t CurrentDisplayFrame=0;
+extern uint32_t OperatingMode;
 /******************************************************************************
 Macro definitions
 ******************************************************************************/
@@ -97,7 +97,7 @@ extern uint8_t _BN6_ADDR[];
 extern uint8_t _BN7_ADDR[];
 extern uint8_t _BN8_ADDR[];
 extern uint8_t _BN9_ADDR[];
- 
+
 extern uint8_t _CLOCKS_ADDR[];
 extern uint8_t _RLOGO_ADDR[];
 extern uint8_t _SPDWARN_ADDR[];
@@ -131,32 +131,32 @@ static uint32_t VG_G_FrameMemory[VG_FRAME_MEM_SIZE/sizeof(unsigned long)];
 static uint32_t VG_G_FrameBuffer[2][800*480];
 #pragma arm section
 
-#elif defined(__GNUC__) 
+#elif defined(__GNUC__)
 
 #if 0
 
 static uint32_t VG_G_FrameMemory[VG_FRAME_MEM_SIZE/sizeof(unsigned long)] __attribute((section("FRAME_MEM_BUF0")));
 uint32_t VG_G_FrameBuffer[2][800*480] __attribute((section("FRAME_MEM_BUF1")));
 uint32_t VG_Frame1  = VG_G_FrameBuffer[0];
-uint32_t VG_Frame2  = VG_G_FrameBuffer[1]; 
+uint32_t VG_Frame2  = VG_G_FrameBuffer[1];
 
-#else 
+#else
 
 static uint32_t VG_G_FrameMemory[VG_FRAME_MEM_SIZE/sizeof(unsigned long)] __attribute((section("FRAME_MEM_BUF0")));
 uint32_t VG_G_FrameBuffer1[VG_SIZE_X*VG_SIZE_Y] __attribute((section("FRAME_MEM_BUF1")));
 uint32_t VG_G_FrameBuffer2[VG_SIZE_X*VG_SIZE_Y] __attribute((section("FRAME_MEM_BUF2")));
 uint32_t VG_Frame1  = VG_G_FrameBuffer1;
-uint32_t VG_Frame2  = VG_G_FrameBuffer2; 
+uint32_t VG_Frame2  = VG_G_FrameBuffer2;
 uint32_t VG_Back_FrameBuffer = VG_G_FrameBuffer2;
- 
+
 #endif
- 
-#else  
-#error	/*unsupported*/ 
+
+#else
+#error	/*unsupported*/
 #endif
-     
+
 #endif
-    
+
 
 static EGLDisplay       Display;
 static EGLSurface       WinSurface;
@@ -168,7 +168,7 @@ static EGLint           iHeight;
 static NativePixmap     front;
 static NativePixmap     back;
 static NativeWindow     window;
- 
+
 uint32_t FrameCountPs=0;
 uint32_t FrameRate=0;
 
@@ -179,7 +179,7 @@ uint32_t OpenVG_OperationWidth =0;
 
 uint32_t OpenVG_BusyFlag =0;
 
-extern uint8_t rtc_halfsecond_flag; 
+extern uint8_t rtc_halfsecond_flag;
 extern uint32_t totalframecnt;
 
 extern VGfloat 	G_CharScale;
@@ -224,15 +224,17 @@ static int32_t Init_NativeResouce (void)
 #else
     front   = createNativePixmapEx(NATIVE_COLOR, iWidth, iHeight,
                                    NATIVE_PIXMAP_FB_RAM, VG_G_FrameBuffer1 );
+
     back    = createNativePixmapEx(NATIVE_COLOR, iWidth, iHeight,
                                    NATIVE_PIXMAP_FB_RAM, VG_G_FrameBuffer2 );
 #endif
-    
+
     window  = createNativeWindow(front, back);
 
-//		printf("front,back,window,ulBaseAdder = %x,%x,%x,%x\n",front,back,window,ulBaseAdder);
- 
+    //printf("front,back,window,ulBaseAdder = %x,%x,%x,%x\n",front,back,window,ulBaseAdder);
+
     showNativeWindow(window);
+
     /* EGL initialization */
     eglStartUp();
 
@@ -331,7 +333,8 @@ static int32_t Init_OpenvgAndEgl (void)
 
     iCongigNum = 0;
     hConfig    = 0;
-    b_egl_ret = eglChooseConfig(Display, piConfigAttribList, &hConfig, 1, &iCongigNum);
+    b_egl_ret = eglChooseConfig(Display,
+        piConfigAttribList, &hConfig, 1, &iCongigNum);
 
     if (b_egl_ret != EGL_TRUE)
     {   /* ERROR */
@@ -359,7 +362,9 @@ static int32_t Init_OpenvgAndEgl (void)
         printf("[Error]:eglCreateContext\n");
         return -1;
     }
-		printf("Display,WinSurface,Context = %x,%x,%x\n",Display,WinSurface,Context);
+    printf("Display,WinSurface,Context = %x,%x,%x\n",
+        Display,WinSurface,Context);
+
     b_egl_ret = eglMakeCurrent(Display, WinSurface, WinSurface, Context);
     if (b_egl_ret != EGL_TRUE)
     {   /* ERROR */
@@ -415,18 +420,18 @@ static void ClearBuffer (void)
     VGfloat Color[4];
 
     /* White */
-    Color[0] = 0.1f;				//B	
+    Color[0] = 0.1f;				//B
     Color[1] = 0.1f;				//G
     Color[2] = 0.1f;				//R
     Color[3] = 0.0f;
- 
+
     vgSetfv(VG_CLEAR_COLOR, 4, Color);
 
     vgClear(0, 0, (VGint)iWidth, (VGint)iHeight);
 }   /* End of function ClearBuffer() */
 
-  
- 
+
+
 #if 0					//RETW_GL_TEST
 void FillScreen(unsigned long color)
 {
@@ -434,17 +439,17 @@ void FillScreen(unsigned long color)
 		for(j=0;j<480*800;j++)
 	//			for(i=0;i<800;i++)
 				{
-				VG_G_FrameBuffer[CurrentDisplayFrame][j]= color;			
+				VG_G_FrameBuffer[CurrentDisplayFrame][j]= color;
 			}
-#if 1			
+#if 1
 			for(i=0;i<120*800;i++)
  				VG_G_FrameBuffer[CurrentDisplayFrame][i] = ((i/800)<<12)&0x0003F000;
 			for(i=120*800;i<240*800;i++)
  				VG_G_FrameBuffer[CurrentDisplayFrame][i] = (((i/800)-120)<<6)&0x00000fC0;
 			for(i=240*800;i<360*800;i++)
- 				VG_G_FrameBuffer[CurrentDisplayFrame][i] = (((i/800)-240) )&0x0000003f;			
+ 				VG_G_FrameBuffer[CurrentDisplayFrame][i] = (((i/800)-240) )&0x0000003f;
 			for(i=360*800;i<480*800;i++)
- 				VG_G_FrameBuffer[CurrentDisplayFrame][i] = 0x0000003f;	
+ 				VG_G_FrameBuffer[CurrentDisplayFrame][i] = 0x0000003f;
 #endif
 
 			DspBMP(__image_btn1, 0,0,VG_G_FrameBuffer[CurrentDisplayFrame], 0);
@@ -453,41 +458,41 @@ void FillScreen(unsigned long color)
 void FillScreenColorBar( VGint currentframe)
 {
 		unsigned long i,j;
-#if 1			
+#if 1
 			for(i=0;i<120*800;i++)
  				VG_G_FrameBuffer[currentframe][i] = ((i/800)<<24)&0xFF000000;
 			for(i=120*800;i<240*800;i++)
  				VG_G_FrameBuffer[currentframe][i] = (((i/800)-120)<<16)&0x00FF0000;
 			for(i=240*800;i<360*800;i++)
- 				VG_G_FrameBuffer[currentframe][i] = (((i/800)-240)<<8 )&0x0000FF00;			
+ 				VG_G_FrameBuffer[currentframe][i] = (((i/800)-240)<<8 )&0x0000FF00;
 			for(i=360*800;i<480*800;i++)
- 				VG_G_FrameBuffer[currentframe][i] = (((i/800)-360) )&0x0000003f  + (((i/800)-360)<<6 )&0x00000fC0 + (((i/800)-360)<<12 )&0x0003F000;	
+ 				VG_G_FrameBuffer[currentframe][i] = (((i/800)-360) )&0x0000003f  + (((i/800)-360)<<6 )&0x00000fC0 + (((i/800)-360)<<12 )&0x0003F000;
 #endif
 //			DspBMP(__image_btn1, 0,0,VG_G_FrameBuffer[0], 0);
 }
 
 void FillScreenColorBlock( VGint currentframe)
 {
-		unsigned long i,j;	
+		unsigned long i,j;
 
 			for(i=240*800;i<260*800;i++)
  				VG_G_FrameBuffer[currentframe][i] = (((i/800)-120)<<6)&0x00000fC0;
 }
 
-#endif		
+#endif
 
 void GL_FillScreen(uint32_t color)
 {
-	
+
 	  uint32_t *pframe;
- 
+
 		unsigned long i;
 
 //		printf("VG_Back_FrameBuffer=%x\n",VG_Back_FrameBuffer);
-		
-    pframe = (uint32_t *)VG_Back_FrameBuffer; 
+
+    pframe = (uint32_t *)VG_Back_FrameBuffer;
 //		printf("pframe=%x\n",pframe);
-		
+
 		i=800*480;
 		while(i>0){
 					*pframe++ = 0;
@@ -501,18 +506,18 @@ void GL_FillScreen(uint32_t color)
 
 void PastePicture( VGint currentframe, int x_start, int y_start)
 {
-		unsigned long x,y;	
+		unsigned long x,y;
 
 			for(y=0;y<200;y++)
 			for(x=0;x<200;x++)
 				{
-					
+
 				*(uint32_t*)	(currentframe+(y_start+y)*800*4+(x_start+x)*4 ) = Graphics_ImageData32[y*200+x];
- 
+
  				}
 }
- 
- 	
+
+
 /**************************************************************************//**
  * @brief       Clear
  * @param[in]   void
@@ -528,11 +533,11 @@ int32_t SwapBuffers (void)
         printf("[Error]:eglSwapBuffers\n");
         return -1;
     }
-    
+
 //    printf("egl return %d\n",b_egl_ret);
     return 0;
 }   /* End of function SwapBuffers() */
- 
+
 static int32_t GetCurrentDisplay (void)
 {
     EGLSurface  egl_ret;
@@ -541,208 +546,114 @@ static int32_t GetCurrentDisplay (void)
 }
 
 /**************************************************************************//**
- * @brief       
+ * @brief
  * @param[in]   void
  * @retval      None
 ******************************************************************************/
 void Graphics_OpenVGSample (void)
 {
-    int32_t     error,i,j;
-		uint32_t *fp;
-    uint32_t    ulBaseAdder = (uint32_t)VG_G_FrameMemory;
- 
+    int32_t error,i,j;
+    uint32_t *fp;
+    uint32_t ulBaseAdder = (uint32_t)VG_G_FrameMemory;
+
     /* -----  Initialisation value for application ----- */
     Display     = EGL_NO_DISPLAY;
     WinSurface  = EGL_NO_SURFACE;
     Context     = EGL_NO_CONTEXT;
-
     front       = NATIVE_NO_PIXMAP;
     back        = NATIVE_NO_PIXMAP;
     window      = NATIVE_NO_WINDOW;
- 
     iWidth      = Screen_SizeX;
     iHeight     = Screen_SizeY;
-   
+
     error = 0;
 
-		printf("Init_NativeResouce---Start\n" );
-																																			//frome here ARGB
+    printf("Init_NativeResouce---Start\n" );
+    //frome here ARGB
     /* ----- Initialise native resource ----- */
     error = Init_NativeResouce();
- 																																			//frome here ABGR
-//		RETW_GE_RetanglePolycon( &VG_G_FrameBuffer1[0],0,0, 800, 480,0x80FF0000);
-//		RETW_GE_RetanglePolycon( &VG_G_FrameBuffer1[1],0,0, 800, 480,0x80FF0000);
-		printf("Init_NativeResouce---Done\n" );
-		
+    //frome here ABGR
+    printf("Init_NativeResouce---Done\n" );
+
     /* ----- Initialise OpenVG and EGL ----- */
     if (error >= 0)
-    {   /* If an error has not occurred, ... */
         error = Init_OpenvgAndEgl();
-    }
 
-		printf("Init_OpenvgAndEgl---Done\n" );
- 
-		MigoGraphicsInitialize(0,VG_G_FrameBuffer2, iWidth, iHeight, iWidth*iHeight*4);
-//  MigoGraphicsMain();
- 
-		GRAPHICS_DrawVgImage_PrepareImage(); 
- 
- 			while(0){
- 				TmrDelay_Graphics(1000);
- 				for(i=0;i<800*480;i++)
- 				VG_G_FrameBuffer1[i]=0x00FF00ff;
- 				printf("Fill buf 1 Green...........\n");
- 				
- 				TmrDelay_Graphics(1000);
- 				for(i=0;i<800*480;i++)
- 				VG_G_FrameBuffer1[i]=0xFFFFFFff;
- 				printf("Fill buf 1 WHITE...........\n");
+	printf("Init_OpenvgAndEgl---Done\n" );
 
- 				TmrDelay_Graphics(1000);
- 				for(i=0;i<800*480;i++)
- 				VG_G_FrameBuffer2[i]=0xFF00FFff;
- 				printf("Fill buf 2 Purple\n");
- 				
- 				TmrDelay_Graphics(1000);
- 				for(i=0;i<800*480;i++)
- 				VG_G_FrameBuffer2[i]=0xFF0000ff; 		
- 				printf("Fill buf 2 WHITE\n");		
- 				}
- 
-				ClearBuffer();						//this ClearBuffer will clean background plane.
-				SwapBuffers();
-				ClearBuffer();						//this ClearBuffer will clean background plane.
-				SwapBuffers();				
- 
-				R_GUI_OpenVGFontOpen();
-				GUI_GraphicsTask_Initial();
-				
-				printf("Start BLE Initialize\n");
-//  			RETW_BLE_Init();
-				printf("Finished BLE Initialize\n");				
-//				GL_DrawingRoundRectangle();
-//				RETW_GUI_PoliconFillScreen(0,0,800,480,0x000000ff);
+	MigoGraphicsInitialize(0, VG_G_FrameBuffer2, iWidth, iHeight,
+        iWidth*iHeight * 4);
 
-        while (1)
-        {
+	GRAPHICS_DrawVgImage_PrepareImage();
 
-#if 1		//Master    	
-//            RETW_BLE_MainPolling();	
-            
-#else		//BLE client
- 
-#endif        		
+    //this ClearBuffer will clean background plane.
+	ClearBuffer();
+	SwapBuffers();
 
+    //this ClearBuffer will clean background plane.
+	ClearBuffer();
+	SwapBuffers();
 
-        		VsyncThreadFlag=0;
- 
-         		while(VsyncThreadFlag==0){}
-            	LedOn();				//RSKVGTEST
- 
-							KeyScanning_Main();
- 
-     					OpenVG_BusyFlag =1;
-#if 0
-     					if(OperatingMode!=6)
-  					 	RETW_GUI_PoliconFillScreen(0,0,Screen_SizeX,Screen_SizeY,0x000000ff);
-#endif
-  					 	
-#if 0
-  					 	fp = VG_Back_FrameBuffer;
-  					 	j= Screen_SizeX*Screen_SizeY;
-  					 	
-  					 	while(j>0){
-  						*fp++ = 0xff010101;
-  						j--;}
-#endif
- 
-//        			vgFlush();
-//      		  	vgFinish(); 
-  	
-//            DspBMP(__VS024, 0,0,VG_G_FrameBuffer[!CurrentDisplayFrame], 0);
-//            DspBMP(__dash1, 0,0,VG_G_FrameBuffer[!CurrentDisplayFrame], 0);
-//            DspBMP(_BMPLOGO, 400,240,VG_G_FrameBuffer[!CurrentDisplayFrame], 0);
-//            DspBMP(_3DBTNS, 600,240,VG_G_FrameBuffer[!CurrentDisplayFrame], 0);
+	R_GUI_OpenVGFontOpen();
+	GUI_GraphicsTask_Initial();
 
-//							DspBMP(_W_HOTb, 400-240,0,VG_G_FrameBuffer[CurrentDisplayFrame], 0);
-            /* Draw */
- 
-          		GUI_GraphicsTask_Main(OperatingMode);
- 
-      				OpenVG_BusyFlag=0;
+	printf("Start BLE Initialize\n");
+	printf("Finished BLE Initialize\n");
 
-//              vgFlush();      
-							vgFinish();		
-							
-#if 1
-            	MigoGraphicsInitialize(0,VG_Back_FrameBuffer, iWidth, iHeight, iWidth*iHeight*4);		
-            	VGADspSetLocation(300,480-16);
-//            	VGADspString("Total Count %d, FrameRate %d fps, OpenVG occupy %d Percent\n",totalframecnt, FrameRate , (OpenVG_OperationLoad*10000/OpenVG_OperationWidth/100)-1 );
-							VGADspString(" Frame-Rate- %d -fps,  totalframes  %d\n",FrameRate,totalframecnt);
+    while (1)
+    {
+    	VsyncThreadFlag = 0;
+        while (VsyncThreadFlag == 0){}
+        LedOn(); //RSKVGTEST
 
-//            PastePicture( VG_Back_FrameBuffer, 0, 0);		
-#endif
-//   					GE_FillRectangle(20,20,1240,440,0x00000000);
-//  						GE_FillRectangle(0,0,352,240,0x00000000);
-  						GE_FillRectangle((Screen_SizeX/2)-(352/2),(Screen_SizeY/2)-(240/2),352,240,0x00000000);
-  						
-//						GE_FillEclipse(Screen_SizeX/2,Screen_SizeY/2,240,240,0x00000000);
-// 						Project3Dto2DDemo();
- 							
-//							GE_FillRectangle(300,160,200,160,0x00000000);		
-//							printf("Back Address is %x\n",VG_Back_FrameBuffer);
-//    						GE_FillRectangle(100,240,600,200,0x00000000);	
-				      
-#if 0
- 				while(TimeTickThreadCount<15)
- 							{
- 								if(VsyncThreadFlag==1)
- 								break;
- 								
- 								Audio_MainLoop(); 				
- 							}
-#endif
-//             	VGADspSetLocation(550,480-16);
-//            	VGADspString("by Renesas and Regulus\n");
- 
-          error = SwapBuffers();
-          if (error < 0)
-          {   /* ERROR */
-          			printf("SwapBuffer Error!!\n");
-                break;
-          }
-            
-					LedOff();				//RSKVGTEST
-           
-           
-  				OpenVG_OperationLoad = TimeTickThreadCount;            
-//						vgFlush();
-//						vgFinish();
- 						
-            CurrentDisplayFrame = !CurrentDisplayFrame;
-            if(CurrentDisplayFrame ==0)
+        //KeyScanning_Main();
+
+        OpenVG_BusyFlag = 1;
+        RETW_Demo();
+        //GUI_GraphicsTask_Main(OperatingMode);
+        OpenVG_BusyFlag = 0;
+		vgFinish();
+
+        //MigoGraphicsInitialize(0, VG_Back_FrameBuffer,
+        //    iWidth, iHeight, iWidth * iHeight * 4);
+
+        //VGADspSetLocation(300, 480 - 16);
+        //VGADspString("Frame-Rate- %d -fps,  totalframes  %d\n",
+        //    FrameRate, totalframecnt);
+
+        //GE_FillRectangle((Screen_SizeX / 2) - (352 / 2),
+        //    (Screen_SizeY / 2) - (240 / 2),
+        //    352, 240, 0x00000000);
+
+        error = SwapBuffers();
+        if (error < 0) {
+            printf("SwapBuffer Error!!\n");
+            break;
+        }
+
+        LedOff(); //RSKVGTEST
+        OpenVG_OperationLoad = TimeTickThreadCount;
+
+        CurrentDisplayFrame = !CurrentDisplayFrame;
+        if (CurrentDisplayFrame == 0)
             VG_Back_FrameBuffer = VG_G_FrameBuffer2 ;
-            else
+        else
             VG_Back_FrameBuffer = VG_G_FrameBuffer1 ;
-            
-            FrameCountPs+=1;
- 
-		}		//while(1)
- 
+
+        FrameCountPs += 1;
+	}
+
     /* ----- Terminate OpenVG and EGL ----- */
     if (error >= 0)
-    {   /* If an error has not occurred, ... */
         error = Term_OpenvgAndEgl();
-    }
 
     /* ----- Terminate native resource ----- */
     if (error >= 0)
-    {   /* If an error has not occurred, ... */
         error = Term_NativeResouce();
-    }
+
     while (1);  /* End */
 }
- 
+
 
 void RETW_GUIDspDigiNumber(int x, int y, int Number)
 {
@@ -750,27 +661,27 @@ void RETW_GUIDspDigiNumber(int x, int y, int Number)
 		if(Number==0)
 				DspBMP(_BN0_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 		else if(Number==1)
-				DspBMP(_BN1_ADDR, x, y, VG_Back_FrameBuffer, 0,0);	
+				DspBMP(_BN1_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 		else if(Number==2)
-				DspBMP(_BN2_ADDR, x, y, VG_Back_FrameBuffer, 0,0);	
+				DspBMP(_BN2_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 		else if(Number==3)
-				DspBMP(_BN3_ADDR, x, y, VG_Back_FrameBuffer, 0,0);	
+				DspBMP(_BN3_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 		else if(Number==4)
-				DspBMP(_BN4_ADDR, x, y, VG_Back_FrameBuffer, 0,0);	
+				DspBMP(_BN4_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 		else if(Number==5)
-				DspBMP(_BN5_ADDR, x, y, VG_Back_FrameBuffer, 0,0);	
+				DspBMP(_BN5_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 		else if(Number==6)
-				DspBMP(_BN7_ADDR, x, y, VG_Back_FrameBuffer, 0,0);	
+				DspBMP(_BN7_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 		else if(Number==7)
-				DspBMP(_BN7_ADDR, x, y, VG_Back_FrameBuffer, 0,0);	
+				DspBMP(_BN7_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 		else if(Number==8)
-				DspBMP(_BN8_ADDR, x, y, VG_Back_FrameBuffer, 0,0);	
+				DspBMP(_BN8_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 		else if(Number==9)
-				DspBMP(_BN9_ADDR, x, y, VG_Back_FrameBuffer, 0,0);	
+				DspBMP(_BN9_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
 #endif
 
 }
- 
+
 void RETW_GUI_Meter_DspFixPicture(int x, int y)
 {
 #if 0		//direct fill BMP, it has no antialince when redraw indicator
@@ -781,29 +692,29 @@ void RETW_GUI_Meter_DspFixPicture(int x, int y)
 //			TrVg_DrawingFiltersClock160160(x,y);
 
 //			TrVg_DrawingFilters();
- 
+
 #endif
- 
+
 #if 0
 DspBMP(_KMH_ADDR, 500,280, VG_Back_FrameBuffer, 0,0);
 #else
  				G_CharScale = 1.5;
 				G_CharShearX=0.2;
-				G_CharShearY=0.0;	
+				G_CharShearY=0.0;
 				R_TXTR_DrawStringMain("km/h", 4, 520, 200, 0xFFFFFFff);
-#endif			
+#endif
 
-   			DspBMP(_RLOGO_ADDR, 590,420, VG_Back_FrameBuffer, 0,0);				
+   			DspBMP(_RLOGO_ADDR, 590,420, VG_Back_FrameBuffer, 0,0);
 }
 #if 0
 void RETW_GUI_HUD_DspFixPicture(int x, int y)
 {
-  
+
    			DspBMP(_HUD101_ADDR, 10,100, VG_Back_FrameBuffer, 0,0);
    			DspBMP(_HUD102_ADDR, 300,0, VG_Back_FrameBuffer, 0,0);
    			DspBMP(_HUD103_ADDR, 580,300, VG_Back_FrameBuffer, 0,0);
    			DspBMP(_HUD104_ADDR, 300,400, VG_Back_FrameBuffer, 0,0);
-   			DspBMP(_HUD105_ADDR, 10,300, VG_Back_FrameBuffer, 0,0);   			
+   			DspBMP(_HUD105_ADDR, 10,300, VG_Back_FrameBuffer, 0,0);
 				DspBMP(_KMH_ADDR, 700,200, VG_Back_FrameBuffer, 0,0);
 }
 
@@ -811,10 +722,10 @@ void RETW_GUI_HUD_DspFixPicture(int x, int y)
 
 void RETW_GUI_HUD_DspDirectionFlag(int x, int y, int PicNum)
 {
-	
+
 				int newx = x-80;
  				int newy = y-20;
- 				
+
  				if(PicNum == 1)
    			DspBMP(_HUD1_ADDR, newx,newy, VG_Back_FrameBuffer, 0,1);
  				else if(PicNum == 2)
@@ -832,25 +743,25 @@ void RETW_GUI_HUD_DspDirectionFlag(int x, int y, int PicNum)
  				else if(PicNum == 9)
    			DspBMP(_HUD9_ADDR, newx,newy, VG_Back_FrameBuffer, 0,1);
  				else if(PicNum == 10)
-   			DspBMP(_HUDA_ADDR, newx,newy, VG_Back_FrameBuffer, 0,1);   			  			
+   			DspBMP(_HUDA_ADDR, newx,newy, VG_Back_FrameBuffer, 0,1);
  				else if(PicNum == 11)
-   			DspBMP(_HUDB_ADDR, newx,newy, VG_Back_FrameBuffer, 0,1);      			   			
- 
+   			DspBMP(_HUDB_ADDR, newx,newy, VG_Back_FrameBuffer, 0,1);
+
 }
 
-          
-#endif    
+
+#endif
 void RETW_GUIDspWarning(int x, int y)
 {
 				DspBMP(_SPDWARN_ADDR, x, y, VG_Back_FrameBuffer, 0,0);
- 
+
 }
 
 void ExportVsyncSharingTick()
 {
   		VsyncThreadFlag=1;
   		OpenVG_OperationWidth = TimeTickThreadCount;
-  		
+
   		TimeTickThreadCount=0;
 }
 
