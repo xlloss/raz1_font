@@ -1,0 +1,1 @@
+ -I"C:\\work\\rza1\\OpenVG_ChnFont_Sample_code\\RZ_A1H_OpenVG_RSK-CPT/src" -I"C:\\work\\rza1\\OpenVG_ChnFont_Sample_code\\RZ_A1H_OpenVG_RSK-CPT\\bin"  --gdwarf2 -mlittle-endian -mcpu=cortex-a9 -march=armv7-a -mfloat-abi=hard -mfpu=vfp  

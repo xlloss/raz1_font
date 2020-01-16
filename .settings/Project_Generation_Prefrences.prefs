@@ -1,0 +1,6 @@
+com.renesas.cdt.rz.HardwareDebug.Linker.option.archiveSearchDirectories.119271066="${CONFIGDIR}";"${workspace_loc\:/${ProjName}}";"${TCINSTALL}/lib/gcc/arm-none-eabi/${GCC_VERSION}/fpu/interwork";
+com.renesas.cdt.rz.HardwareDebug.Linker.option.archiveSearchDirectories.1298058926="${CONFIGDIR}";"${workspace_loc\:/${ProjName}}";"${TCINSTALL}/lib/gcc/arm-none-eabi/${GCC_VERSION}/fpu/interwork";
+com.renesas.cdt.rz.HardwareDebug.Linker.option.archiveSearchDirectories.2085679872="${CONFIGDIR}";"${workspace_loc\:/${ProjName}}";"${TCINSTALL}/lib/gcc/arm-none-eabi/${GCC_VERSION}/fpu/interwork";
+com.renesas.cdt.rz.HardwareDebug.Linker.option.archiveSearchDirectories.213817847="${CONFIGDIR}";"${workspace_loc\:/${ProjName}}";"${TCINSTALL}/lib/gcc/arm-none-eabi/${GCC_VERSION}/fpu/interwork";
+com.renesas.cdt.rz.Release.Linker.option.archiveSearchDirectories.1906363691="${CONFIGDIR}";"${workspace_loc\:/${ProjName}}";"${TCINSTALL}/lib/gcc/arm-none-eabi/${GCC_VERSION}/fpu/interwork";
+eclipse.preferences.version=1

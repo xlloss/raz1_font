@@ -1,0 +1,1 @@
+ -I"C:\\Workspace\\RZ\\RZ_A1H_OpenVG_RSK/src" -I"C:\\Workspace\\RZ\\RZ_A1H_OpenVG_RSK\\bin"  --gdwarf2 -mlittle-endian -mcpu=cortex-a9 -march=armv7-a -mthumb-interwork -mfloat-abi=hard -mfpu=vfp 

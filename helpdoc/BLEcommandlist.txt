@@ -1,0 +1,25 @@
+ERROR
+AT-AS?
+
+-AS: 123456789abc
+
+OK
+AT-C=cba987654321
+
+OK
+
+CONNECT
+
+[Virtual UART Mode]
+1222332345
+          223
+
+[AT Command Mode]
+
+[Virtual UART Mode]
+
+[AT Command Mode]
+
+[Virtual UART Mode]
+uhuashdh;asjkdhjkhas
+                    weijfijwioejiofjweio

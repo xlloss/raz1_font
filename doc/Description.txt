@@ -1,0 +1,169 @@
+/******************************************************************************
+* DISCLAIMER
+* This software is supplied by Renesas Electronics Corporation and is only
+* intended for use with Renesas products. No other uses are authorized. This
+* software is owned by Renesas Electronics Corporation and is protected under
+* all applicable laws, including copyright laws.
+* THIS SOFTWARE IS PROVIDED "AS IS" AND RENESAS MAKES NO WARRANTIES REGARDING
+* THIS SOFTWARE, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING BUT NOT
+* LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+* AND NON-INFRINGEMENT. ALL SUCH WARRANTIES ARE EXPRESSLY DISCLAIMED.
+* TO THE MAXIMUM EXTENT PERMITTED NOT PROHIBITED BY LAW, NEITHER RENESAS
+* ELECTRONICS CORPORATION NOR ANY OF ITS AFFILIATED COMPANIES SHALL BE LIABLE
+* FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES FOR
+* ANY REASON RELATED TO THIS SOFTWARE, EVEN IF RENESAS OR ITS AFFILIATES HAVE
+* BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+* Renesas reserves the right, without notice, to make changes to this software
+* and to discontinue the availability of this software. By using this software,
+* you agree to the additional terms and conditions found by accessing the
+* following link:
+* http://www.renesas.com/disclaimer
+*
+* Copyright (C) 2014 Renesas Electronics Corporation. All rights reserved.
+******************************************************************************/
+/******************************************************************************
+* System Name : RZ/A1H R7S72100 Sample Program
+* File Name   : Description.txt
+******************************************************************************/
+/****************************************************************************
+* History     : Oct 21,2014 Rev.1.00.00     Initial documentation
+******************************************************************************/
+
+1. Before Use
+
+  This sample program has been written for and tested upon the CPU board 
+  RSK+RZA1H YR0K77210C000BE.  
+
+  ****************************** CAUTION ******************************
+   This sample program is for reference only. Please use this sample 
+   program for technical reference.
+  ****************************** CAUTION ******************************
+
+
+2. System Requirements
+
+  The system requirements for this sample program are listed below.
+
+    CPU                      : RZ/A1H
+    Evaluation board         : YR0K77210C000BE (CPU board)
+    Toolchain                : GNU 4.9-GNUARM-NONE_v14.02
+    Development environment  : Renesas e2 studio
+                               Version 3.1
+    Emulator                 : Segger J-Link
+    Tutorial Manual	         : R20UT3008EG RSK+RZA1H Tutorial Manual							   
+    Display                  : YYR0K77210C000BE (RSK TFT APP Board)
+	
+3. Operation Confirmation Conditions
+  
+  (1) Operating frequency
+      The RZ/A1H clock pulse generator is set to so that the clock 
+      on the CPU board YR0K77210C000BE has the following frequencies. 
+      (The frequencies indicate the values in the state that the clock with 
+      13.33MHz is input to the EXTAL pin in RZ/A1H clock mode 0.)
+      - Maximum operating frequency     : 400MHz
+      - Image processing clock          : 266.67MHz
+      - Internal bus clock              : 133.33MHz
+      - Peripheral clock1               : 66.67MHz
+      - Peripheral clock0               : 33.33MHz
+
+  (2) Linker file configuration
+      GNU_e2 studio-IRAM.ld - Program loaded, and execution from internal memory 
+            
+  (3) Setting for asynchronous communication
+      A serial port is provided via the on board USB to Serial converter
+      using a Renesas RL78/G1C device. 
+	  
+      Connect a USB cable between RSK+ CN18 and the host PC, a driver for this
+      was installed with the RSK+ and is available on the RSK+ DVD image.
+	  
+      For this sample the serial terminal should be set to 115200 baud, 
+	  8 data bits, no Parity, 1 stop bit.
+4. Operational Procedure
+
+  Use the following procedure to execute this sample program.
+
+  (1)   Setting for DIP switches and jumpers
+        Set the  DIP switches and jumpers of the YR0K77210C000BE as follows.
+
+        SW4   - SW4-1 OFF, SW4-2 OFF, SW4-3 OFF, SW4-4 OFF, 
+                SW4-5 OFF, SW4-6 OFF, SW4-7 OFF, SW4-8 OFF
+        SW6   - SW6-1 ON, SW6-2 ON, SW6-3 ON, SW6-4 ON, SW6-5 ON, SW6-6 ON
+        
+        All Jumpers shall not be fitted with the following exceptions
+           JP11 1-2 connected
+           JP12 1-2 connected
+           JP21 1-2 connected
+           JP18 1-2 connected
+  ****************************** CAUTION ******************************
+        Ensure the PWR_SEL jumper is set correctly, when set to 2-3 
+        the application of more than 5V will destroy the devices on 
+        the board.
+        PWR_SEL 2-3 connected (5V)
+		This sample assumes all parts on the RSK+RZA1H board are at 
+		their default states as shown on the schematics diagram.
+  ****************************** CAUTION ******************************
+     
+  (2) Setting up the sample program
+      Copy the [RZ_A1H_OpenVG_RSK] directory into the e2 studio workspace
+      directory of the host PC.
+
+  (3) Activating integrated development environment
+      Start the integrated development environment, e2 studio.
+      Import the sample project into a workspace as described in the tutorial
+      manual.
+
+  (4) Building [RZ_A1H_OpenVG_RSK] project
+      After importing [RZ_A1H_OpenVG_RSK] project, select the appropriate
+      build configuration for your requirements, if in doubt select Hardware Debug. 
+	  Then build the [RZ_A1H_OpenVG_RSK] project to generate the executable
+      file RZ_A1H_OpenVG_RSK.x.
+      
+  (5) Connect the YYR0K77210C000BE (RSK TFT APP Board) to CN44 of the CPU board 
+      YR0K77210C000BE.
+  
+  (6) Connect a 5V regulated power supply to CN5.
+
+  (7) Connecting with emulator
+      Connect the emulator to CN14 of the CPU board YR0K77210C000BE. 
+      Set the Debugger configuration as required in the tutorial manual for the
+      build configuration. 
+
+  (8) Downloading sample program
+      Write the load module (RZ_A1H_OpenVG_RSK.x) of the sample program
+      to the RAM using download function of the emulator.
+
+  (9) Executing sample program
+      Use the IDE to execute the sample program after the downloading is 
+      completed.
+
+  (10) Overview of code operation
+  (10-1) Executing sample code
+		 The sample has three operations, which are selected via the serial port.
+          
+  (10-2) Typical log of serial port output 
+
+        RZ/A1H VDC5 Sample Program. Ver.1.00.00.00
+        Copyright (C) 2014 Renesas Electronics Corporation. All rights reserved.
+
+        Use 'Help' command to show list available operations for this sample.
+
+		VDC5 TFT SAMPLE> help
+
+                  1    : RZ_A1H OpenVG Graphics Sample
+                                 Sliding and Scaling
+
+		  HELP : Display command help
+
+        OpenVG SAMPLE> 1
+        LCD TFT Display - 800x480 pixels
+
+
+  (10-3) This sample demonstrates the operation operation of a TFT Display 
+        panel which is part of the RSK TFT APP Board YR0K77210C000BE.
+		
+        The sample consists of 1 component:
+        Sample 1 Demonstrates sliding and scaling
+                 first image (coloured picture) is scaled
+                 second imaged is moved from left to right               
+				 
+/* End of File */

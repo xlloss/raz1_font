@@ -1,0 +1,1036 @@
+/*******************************************************************************
+* DISCLAIMER
+* This software is supplied by Renesas Electronics Corporation and is only
+* intended for use with Renesas products. No other uses are authorized. This
+* software is owned by Renesas Electronics Corporation and is protected under
+* all applicable laws, including copyright laws.
+* THIS SOFTWARE IS PROVIDED "AS IS" AND RENESAS MAKES NO WARRANTIES REGARDING
+* THIS SOFTWARE, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING BUT NOT
+* LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+* AND NON-INFRINGEMENT. ALL SUCH WARRANTIES ARE EXPRESSLY DISCLAIMED.
+* TO THE MAXIMUM EXTENT PERMITTED NOT PROHIBITED BY LAW, NEITHER RENESAS
+* ELECTRONICS CORPORATION NOR ANY OF ITS AFFILIATED COMPANIES SHALL BE LIABLE
+* FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES FOR
+* ANY REASON RELATED TO THIS SOFTWARE, EVEN IF RENESAS OR ITS AFFILIATES HAVE
+* BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+* Renesas reserves the right, without notice, to make changes to this software
+* and to discontinue the availability of this software. By using this software,
+* you agree to the additional terms and conditions found by accessing the
+* following link:
+* http://www.renesas.com/disclaimer
+* Copyright (C) 2012 - 2014 Renesas Electronics Corporation. All rights reserved.
+*******************************************************************************/
+/**************************************************************************//**
+* @file         video_2in1_smaple.c
+* @version      1.00
+* $Rev: 8 $
+* $Date:: 2014-09-25 17:14:14 +0900#$
+* @brief        VDC5 2 video input display sample program
+******************************************************************************/
+
+/******************************************************************************
+Includes   <System Includes> , "Project Includes"
+******************************************************************************/
+#include    <string.h>
+
+#include    "r_typedefs.h"
+
+#include    "r_vdc5.h"
+
+#include    "iodefine.h"
+#include    "devdrv_intc.h"
+#include    "dev_drv.h"
+
+#include    "video_decoder.h"
+
+#include    "video_2in1_sample.h"
+#include    "r_switch.h"
+
+/* Camera Driver header */
+#include "r_ov7670_driver.h"
+/* Camera defines */
+#include "camera.h"
+/* Capture engine header */
+#include "r_ceu_driver.h"
+
+
+//#include    "lcd/lcd_analog_rgb_video_2in1_sample.h"
+#include    "lcd_panel.h"
+#include	"graphics.h"
+
+/******************************************************************************
+Macro definitions
+******************************************************************************/
+#define   FLAG_CLEAR             (0u)
+#define   FLAG_SET               (1u)
+
+/*! Bit mask for module clock supply settings */
+#define   STP91_BIT              (0x02u)
+#define   STP90_BIT              (0x01u)
+#define   STBRQ25_BIT            (0x20u)
+#define   STBAK25_BIT            (0x20u)
+#define   STBRQ24_BIT            (0x10u)
+#define   STBAK24_BIT            (0x10u)
+
+#define   VSYNC_1_2_FH_TIMING    (858u) /* Vsync signal 1/2fH phase timing */
+#define   VSYNC_1_4_FH_TIMING    (429u) /* Vsync signal 1/4fH phase timing */
+
+#define   VSYNC_WAIT_COUNT       (10u)
+
+#define   IMGCAP_SIZE_NTSC_HS    (122u * 2u)
+#define   IMGCAP_SIZE_NTSC_HW    (720u * 2u)
+#define   IMGCAP_SIZE_NTSC_VS    (16u)
+#define   IMGCAP_SIZE_NTSC_VW    (480u/2u)
+
+#define   IMGCAP_SIZE_PAL_HS     (132u * 2u)
+#define   IMGCAP_SIZE_PAL_HW     (720u * 2u)
+#define   IMGCAP_SIZE_PAL_VS     (19u)
+#define   IMGCAP_SIZE_PAL_VW     (560u/2u)
+
+//#define   IMGCAP_SIZE_TVI_HS     (276u)
+#define   IMGCAP_SIZE_TVI_HS     (16u)
+#define   IMGCAP_SIZE_TVI_HW     (1280u)
+#define   IMGCAP_SIZE_TVI_VS     (21u)
+#define   IMGCAP_SIZE_TVI_VW     (720u)
+//#define   IMGCAP_SIZE_TVI_VW     (525u+IMGCAP_SIZE_TVI_VS)
+
+/*! Video format: YCbCr422, 2 bytes per pixel */
+#define   VIDEO_FORMAT           (VDC5_RES_MD_YCBCR422)
+
+
+//#define   SUB_VIDEO_DISP_VW      (240u)
+//#define   SUB_VIDEO_DISP_HW      (320u)
+//#define   SUB_VIDEO_DISP_REL_VS  (360u)
+//#define   SUB_VIDEO_DISP_REL_HS  (480u)
+#define   SUB_VIDEO_DISP_VW      (480u)
+#define   SUB_VIDEO_DISP_HW_TVI  (1280u)
+#define   SUB_VIDEO_DISP_HW      (320u)
+#define   SUB_VIDEO_DISP_REL_VS  (0u)
+#define   SUB_VIDEO_DISP_REL_HS  (320u)
+
+/*! Frame buffer stride: Frame buffer stride should be set to a multiple of 32 or 128
+    in accordance with the frame buffer burst transfer mode. */
+#define   VIDEO_BUFFER1_STRIDE   (((SUB_VIDEO_DISP_HW_TVI * 2u) + 31u) & ~31u)
+#define   VIDEO_BUFFER1_HEIGHT   (IMGCAP_SIZE_TVI_VW)
+
+/*! Frame buffer stride: Frame buffer stride should be set to a multiple of 32 or 128
+    in accordance with the frame buffer burst transfer mode. */
+#define   VIDEO_BUFFER2_STRIDE (((SUB_VIDEO_DISP_HW * 2u) + 31u) & ~31u)
+#define   VIDEO_BUFFER2_HEIGHT (IMGCAP_SIZE_PAL_VW)
+
+#define   BUFFER_CNT_1           (1u)
+#define   BUFFER_CNT_2           (2u)
+#define   BUFFER_CNT_3           (3u)
+//#define   __GRAPHIC_LAYER__
+//#define	  CEU_CAPTURE_IMAGE
+/******************************************************************************
+Typedef definitions
+******************************************************************************/
+
+/******************************************************************************
+Imported global variables and functions (from other files)
+******************************************************************************/
+
+/******************************************************************************
+Exported global variables (to be accessed by other files)
+******************************************************************************/
+
+/******************************************************************************
+Private global variables and functions
+******************************************************************************/
+static int32_t SetInterrupt(const vdc5_channel_t ch);
+static void SetVideoDecoder(
+        const vdc5_channel_t       ch,
+        const vdec_adc_vinsel_t    adc_vinsel,
+        vdc5_period_rect_t * const cap_rect);
+static void SW_IntCallbackFunc (const r_switch_state_t state);
+static void init_func (const uint32_t user_num);
+static void quit_func (const uint32_t user_num);
+static void IntCallbackFunc(vdc5_int_type_t int_type);
+static void WaitVsync(const int32_t wait_count);
+static void GRAPHICS_SetIOPort(const vdc5_channel_t ch);
+static vdc5_error_t GRAPHICS_SetVideoReadWrite(
+    const vdc5_channel_t                ch,
+    const vdc5_layer_id_t               layer_id,
+    void                        * const framebuff,
+    const uint32_t                      fb_stride,
+    const uint32_t                      buffer_cnt,
+    const vdc5_res_md_t                 res_md,
+    const vdc5_period_rect_t    * const res,
+    const vdc5_period_rect_t    * const gr_grc);
+static void DV0_SetPort(const vdc5_channel_t ch);
+
+static volatile int32_t vsync_count;
+
+#if     defined(__CC_ARM)
+#pragma arm section zidata = "VRAM"
+static uint8_t FrameBuffer_Video1[VIDEO_BUFFER1_STRIDE * VIDEO_BUFFER1_HEIGHT * BUFFER_CNT_2];
+static uint8_t FrameBuffer_Video2[VIDEO_BUFFER2_STRIDE * VIDEO_BUFFER2_HEIGHT * BUFFER_CNT_3];
+#pragma arm section zidata
+#elif   defined(__ICCARM__)
+static uint8_t FrameBuffer_Video1[VIDEO_BUFFER1_STRIDE * VIDEO_BUFFER1_HEIGHT * BUFFER_CNT_2] @ "VRAM";
+static uint8_t FrameBuffer_Video2[VIDEO_BUFFER2_STRIDE * VIDEO_BUFFER2_HEIGHT * BUFFER_CNT_3] @ "VRAM";
+#elif   defined(__GNUC__)
+static uint8_t FrameBuffer_Video1[VIDEO_BUFFER1_STRIDE * VIDEO_BUFFER1_HEIGHT * BUFFER_CNT_2] __attribute__ ((section("VRAM")));
+static uint8_t FrameBuffer_Video2[VIDEO_BUFFER2_STRIDE * VIDEO_BUFFER2_HEIGHT * BUFFER_CNT_1] __attribute__ ((section("VRAM")));
+#else
+static uint8_t FrameBuffer_Video1[VIDEO_BUFFER1_STRIDE * VIDEO_BUFFER1_HEIGHT * BUFFER_CNT_2];
+static uint8_t FrameBuffer_Video2[VIDEO_BUFFER2_STRIDE * VIDEO_BUFFER2_HEIGHT * BUFFER_CNT_3];
+#endif
+
+/*! SW6 (on CPU board) monitoring flag */
+static volatile uint32_t       g_f_sw6;
+
+/* Buffer for the CEU to capture in to */
+#ifdef YUV422
+const uint8_t g_yuv_frame_buffer[Y_SIZE + UV_SIZE] __attribute__ ((section("VRAM")));
+const uint8_t * const g_pyuv_buf = g_yuv_frame_buffer;
+
+/* Buffer for the final RGB Converted image */
+uint8_t g_bgr_buffer [ ((USEFUL_WIDTH * USEFUL_HEIGHT) * 3) ] __attribute__ ((section("VRAM")));
+uint8_t * g_pbgr_buf = g_bgr_buffer;
+#endif
+
+
+#if (defined RGB565) && (defined CEU_CAPTURE_IMAGE)
+extern uint16_t FrameBufferA[Y_SIZE] __attribute__ ((section("VRAM")));
+extern uint16_t FrameBufferB[Y_SIZE] __attribute__ ((section("VRAM")));
+unsigned char PingPong = 0;
+#endif
+
+#ifdef __GRAPHIC_LAYER__
+/*! Display area */
+#define		FRAME_BUFFER_WIDTH			(LOGO_WIDTH+1)
+#define     FRAME_BUFFER_HEIGHT         (LOGO_HEIGHT)
+#define     FRAME_BUFFER_STRIDE         (((FRAME_BUFFER_WIDTH * 4u) + 31u) & ~31u)
+
+#define PIXEL_FORMAT	PIX_FORMAT_ARGB8888
+
+typedef struct
+{
+    void      * buffer_1;
+    void      * buffer_2;
+    uint32_t    backbuffer_num;
+} buffering_t;
+
+static vdc5_period_rect_t   period_rect;
+static buffering_t buffering_inf;
+
+	#if (defined __GRAPHIC_LAYER__) && (!defined CEU_CAPTURE_IMAGE)
+		static uint8_t FrameBuffer_1[FRAME_BUFFER_STRIDE * FRAME_BUFFER_HEIGHT] __attribute__ ((section("VRAM")));
+	#else
+		static uint8_t FrameBuffer_1[1] __attribute__ ((section("VRAM")));
+	#endif
+#ifdef RGB565
+void CleanBuffer(uint16_t *Frame)
+{
+	uint32_t i,j;
+	j= Y_SIZE;
+	for(i=0;i!=Y_SIZE;i++)
+		Frame[i]=0x55AA;
+	j=i;
+};
+#endif
+
+static void * GetBackBuffer (void)
+{
+    if (buffering_inf.backbuffer_num == 0u)
+    {
+        return buffering_inf.buffer_1;
+    }
+    else
+    {
+        return buffering_inf.buffer_2;
+    }
+}   /* End of function GetBackBuffer() */
+
+/**************************************************************************//**
+ * @brief       Setup graphics
+ * @param[in]   gr_format           : Format of the frame buffer read signal
+ * @param[out]  fr_buff             : Frame buffer base address
+ * @param[in]   width               : Width of the frame buffer to be read
+ * @param[in]   height              : Height of the frame buffer to be read
+ * @param[in]   stride              : Frame buffer line offset address (buffer stride)
+ * @retval      None
+******************************************************************************/
+static void SetGraphicsData (
+    const vdc5_gr_format_t  gr_format,
+    void            * const fr_buff,
+    const uint16_t          width,
+    const uint16_t          height,
+    const uint32_t          stride)
+{
+    /* Create fill color image */
+    GRAPHICS_CreateFillColorImage(fr_buff, NULL, width, height, (uint16_t)stride, gr_format, (int32_t)-1);
+}   /* End of function SetGraphicsData() */
+
+static void CreateFrameBuffer (void)
+{
+    buffering_inf.buffer_1          = (void *)FrameBuffer_1;
+    buffering_inf.buffer_2          = (void *)FrameBuffer_1;
+    buffering_inf.backbuffer_num    = 0u;
+}   /* End of function CreateFrameBuffer() */
+
+#endif
+/**************************************************************************//**
+ * @brief       Setup VDC5 interrupt
+ * @param[in]   ch                      : Channel
+ * @retval      None
+******************************************************************************/
+static int32_t SetInterrupt (const vdc5_channel_t ch)
+{
+    void         (* func)(uint32_t int_sense);
+    uint16_t        int_id;
+    int32_t         ret_code;
+
+    if (ch == VDC5_CHANNEL_0)
+    {
+        int_id = INTC_ID_GR3_VLINE0;
+    }
+    else
+    {
+        int_id = INTC_ID_GR3_VLINE1;
+    }
+
+    func = R_VDC5_GetISR(ch, VDC5_INT_TYPE_VLINE);
+
+    ret_code = R_INTC_RegistIntFunc(int_id, func);
+
+    if (ret_code == DEVDRV_SUCCESS)
+    {
+        ret_code = R_INTC_SetPriority(int_id, (uint8_t)VDC5_INT_PRIORITY);
+    }
+
+    if (ret_code == DEVDRV_SUCCESS)
+    {
+        ret_code = R_INTC_Enable(int_id);
+    }
+
+    return ret_code;
+}   /* End of function SetInterrupt() */
+
+/**************************************************************************//**
+ * @brief       CPU board SW6 Interrupt callback function
+ * @param[in]   int_type    : VDC5 interrupt type
+ * @retval      None
+******************************************************************************/
+static void SW_IntCallbackFunc (const r_switch_state_t state)
+{
+    if (state == R_SWITCH_STATE_PRESS)
+    {
+        /* Set SW6 (on CPU board) monitoring flag  */
+        g_f_sw6 = FLAG_SET;
+    }
+}   /* End of function IntCallbackFunc() */
+
+/**************************************************************************//**
+ * @brief       User-defined function within R_VDC5_Initialize
+ * @param[in]   user_num
+ * @retval      None
+******************************************************************************/
+static void init_func (const uint32_t user_num)
+{
+    uint32_t            reg_data;
+    volatile uint8_t    dummy_read;
+
+    if ((vdc5_channel_t)user_num == VDC5_CHANNEL_0)
+    {
+        /* Standby control register 9 (STBCR9)
+            b1      ------0-;  MSTP91 : 0 : Video display controller channel 0 & LVDS enable */
+        reg_data    = (uint32_t)CPG.STBCR9 & (uint32_t)~STP91_BIT;
+        CPG.STBCR9  = (uint8_t)reg_data;
+        /* In order to reflect the change, a dummy read should be done. */
+        dummy_read = CPG.STBCR9;
+
+        /* Standby Request Register 2 (STBREQ2)
+            b5      --0-----;  STBRQ25 : The standby request to VDC5 channel 0 is invalid. */
+        reg_data    = (uint32_t)CPG.STBREQ2 & (uint32_t)~STBRQ25_BIT;
+        CPG.STBREQ2 = (uint8_t)reg_data;
+        /* Standby Acknowledge Register 2 (STBACK2)
+            b5      --*-----;  STBAK25 : Standby acknowledgment from VDC5 channel 0. */
+        while (((uint32_t)CPG.STBACK2 & (uint32_t)STBAK25_BIT) != 0u)
+        {
+            /* Wait for the STBAK25 to be cleared to 0. */
+        }
+    }
+    else
+    {
+        /* Standby control register 9 (STBCR9)
+            b1      ------0-;  MSTP91 : 0 : Video display controller channel 0 & LVDS enable
+            b0      -------0;  MSTP90 : 0 : Video display controller channel 1 enable */
+        reg_data    = (uint32_t)CPG.STBCR9 & (uint32_t)~(STP91_BIT|STP90_BIT);
+        CPG.STBCR9  = (uint8_t)reg_data;
+        /* In order to reflect the change, a dummy read should be done. */
+        dummy_read = CPG.STBCR9;
+
+        /* Standby Request Register 2 (STBREQ2)
+            b4      ---0----;  STBRQ24 : The standby request to VDC5 channel 1 is invalid. */
+        reg_data    = (uint32_t)CPG.STBREQ2 & (uint32_t)~STBRQ24_BIT;
+        CPG.STBREQ2 = (uint8_t)reg_data;
+        /* Standby Acknowledge Register 2 (STBACK2)
+            b4      ---*----;  STBAK24 : Standby acknowledgment from VDC5 channel 1. */
+        while (((uint32_t)CPG.STBACK2 & (uint32_t)STBAK24_BIT) != 0u)
+        {
+            /* Wait for the STBAK24 to be cleared to 0. */
+        }
+    }
+}   /* End of function init_func() */
+
+/**************************************************************************//**
+ * @brief       User-defined function within R_VDC5_Terminate
+ * @param[in]   user_num
+ * @retval      None
+******************************************************************************/
+static void quit_func (const uint32_t user_num)
+{
+    uint32_t            reg_data;
+    volatile uint8_t    dummy_read;
+
+    if ((vdc5_channel_t)user_num == VDC5_CHANNEL_0)
+    {
+        /* Standby Request Register 2 (STBREQ2)
+            b5      --1-----;  STBRQ25 : The standby request to VDC5 channel 0 is valid. */
+        reg_data    = (uint32_t)CPG.STBREQ2 | (uint32_t)STBRQ25_BIT;
+        CPG.STBREQ2 = (uint8_t)reg_data;
+        /* Standby Acknowledge Register 2 (STBACK2)
+            b5      --*-----;  STBAK25 : Standby acknowledgment from VDC5 channel 0. */
+        while (((uint32_t)CPG.STBACK2 & (uint32_t)STBAK25_BIT) == 0u)
+        {
+            /* Wait for the STBAK25 to be set to 1. */
+        }
+
+        /* Standby control register 9 (STBCR9)
+            b1      ------1-;  MSTP91 : 1 : Video display controller channel 0 & LVDS disable */
+        reg_data    = (uint32_t)CPG.STBCR9 | (uint32_t)STP91_BIT;
+        CPG.STBCR9  = (uint8_t)reg_data;
+    }
+    else
+    {
+        /* Standby Request Register 2 (STBREQ2)
+            b4      ---1----;  STBRQ24 : The standby request to VDC5 channel 1 is valid. */
+        reg_data    = (uint32_t)CPG.STBREQ2 | (uint32_t)STBRQ24_BIT;
+        CPG.STBREQ2 = (uint8_t)reg_data;
+        /* Standby Acknowledge Register 2 (STBACK2)
+            b4      ---*----;  STBAK24 : Standby acknowledgment from VDC5 channel 1. */
+        while (((uint32_t)CPG.STBACK2 & (uint32_t)STBAK24_BIT) == 0u)
+        {
+            /* Wait for the STBAK24 to be set to 1. */
+        }
+
+        /* Standby control register 9 (STBCR9)
+            b1      -------1;  MSTP90 : 1 : Video display controller channel 1 */
+        reg_data    = (uint32_t)CPG.STBCR9 | (uint32_t)STP90_BIT;
+        CPG.STBCR9  = (uint8_t)reg_data;
+    }
+    /* In order to reflect the change, a dummy read should be done. */
+    dummy_read = CPG.STBCR9;
+}   /* End of function quitt_func() */
+
+/**************************************************************************//**
+ * @brief       VDC5 Interrupt callback function
+ * @param[in]   int_type    : VDC5 interrupt type
+ * @retval      None
+******************************************************************************/
+static void IntCallbackFunc (vdc5_int_type_t int_type)
+{
+    if (vsync_count > 0)
+    {
+        vsync_count--;
+    }
+}   /* End of function IntCallbackFunc() */
+
+/**************************************************************************//**
+ * @brief       Wait for the specified number of times Vsync (VLINE) occurs
+ * @param[in]   wait_count          : Wait count
+ * @retval      None
+******************************************************************************/
+static void WaitVsync (const int32_t wait_count)
+{
+    vsync_count = wait_count;
+    while (vsync_count > 0)
+    {
+        /* Do nothing */
+    }
+}   /* End of function WaitVsync() */
+
+/**************************************************************************//**
+ * @brief       Setup video decoder
+ * @param[in]   ch              : Channel
+ * @param[out]  cap_rect        : Image area to be captured
+ * @retval      None
+******************************************************************************/
+static void SetVideoDecoder(
+        const vdc5_channel_t       ch,
+        const vdec_adc_vinsel_t    adc_vinsel,
+        vdc5_period_rect_t * const cap_rect)
+{
+    vdec_channel_t          channel;
+    graphics_col_sys_t      col_sys;
+
+
+    /* Select VDEC channel */
+    if (ch == VDC5_CHANNEL_0)
+    {
+        channel = VDEC_CHANNEL_0;
+    }
+    else
+    {
+        channel = VDEC_CHANNEL_1;
+    }
+
+    col_sys = GRAPHICS_VideoDecoderInit(adc_vinsel, channel);
+    if (col_sys == GRPH_COL_SYS_UNKNOWN)
+    {   /* If not detected, ... */
+        col_sys = GRPH_COL_SYS_NTSC_358;
+    }
+
+    /* NULL pointer check */
+    if (cap_rect != NULL)
+    {
+        if ((col_sys == GRPH_COL_SYS_NTSC_358) || (col_sys == GRPH_COL_SYS_NTSC_443))
+        {   /* Size of NTSC video image to be captured */
+            cap_rect->vs = (uint16_t)IMGCAP_SIZE_NTSC_VS;
+            cap_rect->vw = (uint16_t)IMGCAP_SIZE_NTSC_VW;
+            cap_rect->hs = (uint16_t)IMGCAP_SIZE_NTSC_HS;
+            cap_rect->hw = (uint16_t)IMGCAP_SIZE_NTSC_HW;
+        }
+        else
+        {   /* Size of PAL video image to be captured */
+            cap_rect->vs = (uint16_t)IMGCAP_SIZE_PAL_VS;
+            cap_rect->vw = (uint16_t)IMGCAP_SIZE_PAL_VW;
+            cap_rect->hs = (uint16_t)IMGCAP_SIZE_PAL_HS;
+            cap_rect->hw = (uint16_t)IMGCAP_SIZE_PAL_HW;
+        }
+    }
+}   /* End of function SetVideoDecoder() */
+
+/**************************************************************************//**
+ * @brief       GRAPHICS_SetIOPort
+ * @param[in]   ch              : Channel
+ * @retval      none
+******************************************************************************/
+static void GRAPHICS_SetIOPort(const vdc5_channel_t ch)
+{
+    if (ch == VDC5_CHANNEL_0)
+    {
+        GRAPHICS_SetLcdPanel_Ch0();
+    }
+    else
+    {
+        GRAPHICS_SetLcdPanel_Ch1();
+    }
+}
+
+/**************************************************************************//**
+ * @brief       SetVideoReadWrite
+ * @param[in]   ch                      : Channel
+ *              framebuff               : Frame buffer address
+ *              fb_stride               : Frame buffer stride
+ *              res_md                  : Write data format
+ *              res                     : Validate video area Returned from VDEC
+ *              period_rect             : Display area
+ * @retval      None
+******************************************************************************/
+static vdc5_error_t GRAPHICS_SetVideoReadWrite(
+    const vdc5_channel_t                ch,
+    const vdc5_layer_id_t               layer_id,
+    void                        * const framebuff,
+    const uint32_t                      fb_stride,
+    const uint32_t                      buffer_cnt,
+    const vdc5_res_md_t                 res_md,
+    const vdc5_period_rect_t    * const res,
+    const vdc5_period_rect_t    * const gr_grc)
+{
+    vdc5_error_t             error;
+
+    vdc5_scalingdown_rot_t * scldw_rot;
+    vdc5_width_read_fb_t     w_read_fb;
+    vdc5_write_t             write;
+
+    vdc5_read_t              read;
+    vdc5_gr_format_t         gr_format_tmp;
+
+    /*! Conversion table from video-signal writing format into read signal format */
+    const vdc5_gr_format_t gr_format_conv[VDC5_RES_MD_NUM] =
+    {
+        VDC5_GR_FORMAT_YCBCR422,    /* YCbCr422 */
+        VDC5_GR_FORMAT_RGB565,      /* RGB565 */
+        VDC5_GR_FORMAT_RGB888,      /* RGB888 */
+        VDC5_GR_FORMAT_YCBCR444     /* YCbCr444 */
+    };
+
+
+    /* NULL pointer check */
+    if ( (res == NULL) || (gr_grc == NULL) )
+    {
+        error = VDC5_ERR_PARAM_NULL;
+    }
+    else
+    {
+        /* Scaling-down and rotation parameter */
+        scldw_rot          = &write.scalingdown_rot;
+        /* Image area to be captured */
+        scldw_rot->res.vs   = (uint16_t)((uint32_t)res->vs - 1u);
+        scldw_rot->res.vw   = res->vw;
+        scldw_rot->res.hs   = res->hs;
+        scldw_rot->res.hw   = res->hw;
+
+        /* Width of the image output from scaling-down control block
+         * Width of the image read from frame buffer */
+        if ((uint32_t)res->vw <= (uint32_t)gr_grc->vw)
+        {
+            w_read_fb.in_vw = res->vw;
+        }
+        else
+        {
+            w_read_fb.in_vw = gr_grc->vw;
+        }
+        if ((uint32_t)res->hw <= (uint32_t)gr_grc->hw)
+        {
+            w_read_fb.in_hw = res->hw;
+        }
+        else
+        {
+            w_read_fb.in_hw = gr_grc->hw;
+        }
+
+        /* Write data parameter */
+        scldw_rot->res_ds_wr_md = VDC5_WR_MD_NORMAL;         /* Frame buffer writing mode : No rotation is set */
+        scldw_rot->res_pfil_sel = VDC5_ON;                   /* Prefilter mode select for brightness signals (on/off) */
+        scldw_rot->res_out_vw   = w_read_fb.in_vw;           /* Number of valid lines in vertical direction
+                                                                    output by scaling-down control block */
+        scldw_rot->res_out_hw   = w_read_fb.in_hw;           /* Number of valid horizontal pixels
+                                                                    output by scaling-down control block */
+        scldw_rot->adj_sel      = VDC5_ON;                   /* Measures to decrease the influence
+                                                                    by lack of last-input line (on/off) */
+        write.res_wrswa     = VDC5_WR_RD_WRSWA_NON;          /* Frame buffer swap setting */
+        write.res_md        = res_md;                        /* Frame buffer video-signal writing format */
+        write.res_bst_md    = VDC5_BST_MD_32BYTE;            /* Transfer burst length for frame buffer */
+        if(layer_id == VDC5_LAYER_ID_0_WR)
+        	write.res_inter     = VDC5_RES_INTER_PROGRESSIVE;      /* Field operating mode select */
+        if(layer_id == VDC5_LAYER_ID_1_WR)
+        	write.res_inter     = VDC5_RES_INTER_INTERLACE;      /* Field operating mode select */
+        write.res_fs_rate   = VDC5_RES_FS_RATE_PER1;         /* Writing rate */
+        write.res_fld_sel   = VDC5_RES_FLD_SEL_TOP;          /* Write field select : this parameter is valid if res_fs_rate is not VDC5_RES_FS_RATE_PER1*/
+        write.res_dth_on    = VDC5_ON;                       /* Dither correction on/off */
+        write.base          = (void *)framebuff;             /* Frame buffer base address */
+        write.ln_off        = fb_stride;                     /* Frame buffer line offset address [byte] */
+        write.flm_num       = (uint32_t)(buffer_cnt - 1u);   /* Number of frames of buffer (res_flm_num + 1) */
+        write.flm_off       = fb_stride * (uint32_t)scldw_rot->res_out_vw;
+        write.btm_base      = NULL;                          /* Frame buffer base address for bottom */
+        /* Write data control driver API */
+        error = R_VDC5_WriteDataControl(ch, layer_id, &write);
+
+        if (error == VDC5_OK)
+        {
+            /* Read data parameter */
+            /* Display area */
+            read.gr_grc.vs  = gr_grc->vs;
+            read.gr_grc.vw  = gr_grc->vw;
+            read.gr_grc.hs  = gr_grc->hs;
+            read.gr_grc.hw  = gr_grc->hw;
+
+            read.gr_ln_off_dir  = VDC5_GR_LN_OFF_DIR_INC;       /* Line offset address direction of the frame buffer */
+            read.gr_flm_sel     = VDC5_GR_FLM_SEL_POINTER_BUFF; /* Selects a frame buffer address setting signal */
+            read.gr_imr_flm_inv = VDC5_OFF;                     /* Frame buffer number for distortion correction */
+            read.gr_bst_md      = VDC5_BST_MD_32BYTE;           /* Frame buffer burst transfer mode */
+            read.gr_base        = (void *)framebuff;            /* Frame buffer base address */
+            read.gr_ln_off      = fb_stride;                    /* Frame buffer line offset address */
+            read.width_read_fb  = &w_read_fb;                   /* Width of the image read from frame buffer */
+            read.adj_sel        = VDC5_ON;                      /* Measures to decrease the influence
+                                                                       by folding pixels/lines (ON/OFF) */
+            if (write.res_md < VDC5_RES_MD_NUM)
+            {
+                gr_format_tmp   = gr_format_conv[write.res_md];
+                read.gr_format  = gr_format_tmp;                /* Format of the frame buffer read signal */
+            }
+            if(layer_id == VDC5_LAYER_ID_0_WR)
+            	//read.gr_ycc_swap    = VDC5_GR_YCCSWAP_Y0CBY1CR;     /* Controls swapping of data read from buffer*/
+            	read.gr_ycc_swap    = VDC5_GR_YCCSWAP_CBY0CRY1;     /* Controls swapping of data read from buffer*/
+            if(layer_id == VDC5_LAYER_ID_1_WR)
+            	read.gr_ycc_swap    = VDC5_GR_YCCSWAP_CBY0CRY1;     /* Controls swapping of data read from buffer
+                                                                       in the YCbCr422 format */
+            read.gr_rdswa       = VDC5_WR_RD_WRSWA_NON;
+            /* Read data control driver API */
+            error = R_VDC5_ReadDataControl(
+                        ch,
+                        (layer_id == VDC5_LAYER_ID_0_WR) ? VDC5_LAYER_ID_0_RD : VDC5_LAYER_ID_1_RD,
+                        &read);
+        }
+    }
+
+    return error;
+}   /* End of function GRAPHICS_SetVideoReadWrite() */
+
+static void DV0_SetPort(const vdc5_channel_t ch)
+{
+    volatile uint32_t   dummy_read;
+    uint32_t            reg_data;
+
+    if( ch == VDC5_CHANNEL_0 )
+    {
+        /*  COMS (8bit), DV 0ch
+                 DV0_CLK             ... P10_0        	 1th alternative function
+                 DV0_VSYNC           ... P10_1         	 1th alternative function
+                 DV0_HSYNC           ... P10_2         	 1th alternative function
+                 DV0_DATA[7:0]       ... P10_11 ~ P10_4  1th alternative function
+                 DV0_DATA[11:8]      ... P10_15 ~ P10_12 1th alternative function
+                 DV0_DATA[15:12]      ...P11_3 ~  P11_0  1th alternative function
+         */
+        /* Port 10 */
+        reg_data        = (uint32_t)GPIO.PMC10 & (uint32_t)~0x0001;
+        GPIO.PMC10       = (uint16_t)reg_data;
+        reg_data        = (uint32_t)GPIO.PMC10;
+        dummy_read      = reg_data;
+        /* PFCAE10, PFCE10, PFC10 ... 1th alternative function
+           PIPC10,  PMC10
+           b0   : P10_0 */
+        reg_data       = (uint32_t)GPIO.PFCAE10 & (uint32_t)~0xFFF7;
+        GPIO.PFCAE10    = (uint16_t)reg_data;
+        reg_data       = (uint32_t)GPIO.PFCE10 & (uint32_t)~0xFFF7;
+        GPIO.PFCE10     = (uint16_t)reg_data;
+        reg_data       = (uint32_t)GPIO.PFC10 & (uint32_t)~0xFFF7;
+        GPIO.PFC10      = (uint16_t)reg_data;
+        reg_data       = (uint32_t)GPIO.PIPC10 | (uint32_t)0xFFF7;
+        GPIO.PIPC10     = (uint16_t)reg_data;
+        reg_data       = (uint32_t)GPIO.PMC10 | (uint32_t)0xFFF7;
+        GPIO.PMC10      = (uint16_t)reg_data;
+
+        /* Port 11 */
+        reg_data        = (uint32_t)GPIO.PMC11 & (uint32_t)~0x0001;
+        GPIO.PMC11       = (uint16_t)reg_data;
+        reg_data        = (uint32_t)GPIO.PMC11;
+        dummy_read      = reg_data;
+        /* PFCAE11, PFCE11, PFC11 ... 1th alternative function
+           PIPC11,  PMC11
+           b0   : P11_0 */
+        reg_data       = (uint32_t)GPIO.PFCAE11 & (uint32_t)~0x000F;
+        GPIO.PFCAE11    = (uint16_t)reg_data;
+        reg_data       = (uint32_t)GPIO.PFCE11 & (uint32_t)~0x000F;
+        GPIO.PFCE11     = (uint16_t)reg_data;
+        reg_data       = (uint32_t)GPIO.PFC11 & (uint32_t)~0x000F;
+        GPIO.PFC11      = (uint16_t)reg_data;
+        reg_data       = (uint32_t)GPIO.PIPC11 | (uint32_t)0x000F;
+        GPIO.PIPC11     = (uint16_t)reg_data;
+        reg_data       = (uint32_t)GPIO.PMC11 | (uint32_t)0x000F;
+        GPIO.PMC11      = (uint16_t)reg_data;
+    }
+    else
+    {
+
+    }
+}   /* End of function SetPort() */
+
+/**************************************************************************//**
+ * @brief       Video 2in1 display sample program
+ * @param[in]   void
+ * @retval      None
+******************************************************************************/
+void GRAPHICS_Video2in1Sample (void)
+{
+    /* VDC5 channel (VDC5_CHANNEL_0 or VDC5_CHANNEL_1) */
+    const vdc5_channel_t         ch = VDC5_CHANNEL_0;
+
+    /* Full screen display area */
+    const vdc5_period_rect_t   full_period_rect = {
+            (uint16_t)LCD_CH0_DISP_VS,
+            (uint16_t)LCD_CH0_DISP_VW,
+            (uint16_t)LCD_CH0_DISP_HS,
+			(uint16_t)SUB_VIDEO_DISP_HW_TVI };
+
+
+    /* Sub screen display area */
+    const vdc5_period_rect_t   sub_period_rect = {
+            (uint16_t)(LCD_CH0_DISP_VS + SUB_VIDEO_DISP_REL_VS),    /*  23u + 360u */
+            (uint16_t)SUB_VIDEO_DISP_VW,                            /*        240u */
+            (uint16_t)(LCD_CH0_DISP_HS + SUB_VIDEO_DISP_REL_HS+630),    /* 216u + 480u */
+            (uint16_t)SUB_VIDEO_DISP_HW };                          /*      + 320u */
+
+    vdc5_error_t               error = VDC5_OK;        /* Error code parameter */
+    int32_t                    dev_error;
+
+    int32_t                    sw_ret;                 /* For switch input setup */
+
+    vdc5_int_t                 interrupt;              /* Interrupt parameter */
+
+    vdc5_init_t                init;                   /* VDC5 initialize parameter */
+    vdc5_period_rect_t         res_tmp_ch0;            /* Video 0 capture area */
+    vdc5_period_rect_t         res_tmp_ch1;            /* Video 1 capture area */
+    vdec_adc_vinsel_t          adc_vinsel;             /* VDEC initialize parameter */
+
+    vdc5_input_t               input;                  /* Video input parameter */
+
+    vdc5_sync_ctrl_t           sync_ctrl;              /* Sync control parameter */
+
+    vdc5_output_t              output;                 /* TCON control parameter */
+
+    vdc5_period_rect_t         gr_grc_v0;              /* Video 0 display area */
+    vdc5_period_rect_t         gr_grc_v1;              /* Video 1 display area */
+
+    vdc5_pd_disp_rect_t        pd_disp_rect;           /* Alpha blending valid area */
+    vdc5_alpha_blending_rect_t alpha_blending_rect;    /* Alpha blending parameter */
+    vdc5_scl_und_sel_t         scl_und_lyr_sel;        /* Lower-layer select in the scaler */
+
+    vdc5_gr_disp_sel_t         gr_disp_sel_tmp[VDC5_GR_TYPE_NUM];/* Graphics display mode */
+    vdc5_start_t               start;                  /* Display start parameter */
+
+    vdc5_read_chg_t            read_chg;               /* Read control change parameter */
+    vdc5_gr_disp_sel_t         chg_gr_disp_sel;         /*  */
+    uint32_t		i;
+    
+#ifdef __GRAPHIC_LAYER__
+    void                      * framebuff;
+    vdc5_gr_format_t  				gr_format;
+    CreateFrameBuffer();
+#endif
+
+    read_chg.gr_base         = NULL;
+    read_chg.gr_grc          = NULL;
+    read_chg.width_read_fb   = NULL;
+    read_chg.gr_disp_sel     = &chg_gr_disp_sel;
+
+    /*! Initialize switch event -------------------------------------------------*/
+    sw_ret = R_SwitchIrq6_Init();
+    if (sw_ret == (int32_t)1)
+    {
+        R_SwitchIrq6_SetCb(R_SWITCH_STATE_PRESS, &SW_IntCallbackFunc);
+    }
+
+    /* Registration of interrupt handler ----------------------------------------*/
+    dev_error = SetInterrupt(ch);
+    if (dev_error != DEVDRV_SUCCESS)
+    {
+        error = VDC5_ERR_PARAM_CONDITION;
+    }
+
+    DV0_SetPort(VDC5_CHANNEL_0);
+    /* VDEC Initialize */
+    //adc_vinsel = VDEC_ADC_VINSEL_VIN1;
+    //SetVideoDecoder(VDC5_CHANNEL_0, adc_vinsel, &res_tmp_ch0);
+    adc_vinsel = VDEC_ADC_VINSEL_VIN2;
+    SetVideoDecoder(VDC5_CHANNEL_1, adc_vinsel, &res_tmp_ch1);
+
+    if (error == VDC5_OK)
+    {
+        error = GRPDRV_Init( VDC5_CHANNEL_0, VDC5_ON, VDC5_ON );
+    }
+
+    /* I/O port settings --------------------------------------------------------*/
+    GRAPHICS_SetIOPort(ch);
+
+    //memset(FrameBuffer_Video1, 0x5A,(VIDEO_BUFFER1_STRIDE * VIDEO_BUFFER1_HEIGHT));
+
+
+    if (error == VDC5_OK)
+    {
+    	res_tmp_ch0.vs = IMGCAP_SIZE_TVI_VS;
+    	res_tmp_ch0.vw = IMGCAP_SIZE_TVI_VW;
+    	res_tmp_ch0.hs = IMGCAP_SIZE_TVI_HS;
+    	res_tmp_ch0.hw = IMGCAP_SIZE_TVI_HW;
+
+        /* Settings of video read and write control for layer0 ----------------------*/
+        gr_grc_v0.vs  = full_period_rect.vs;
+        gr_grc_v0.vw  = full_period_rect.vw;
+        gr_grc_v0.hs  = full_period_rect.hs;
+        gr_grc_v0.hw  = full_period_rect.hw;
+        error = GRAPHICS_SetVideoReadWrite(
+                ch,
+                VDC5_LAYER_ID_0_WR,
+                (void *)FrameBuffer_Video1,
+				//SUB_VIDEO_DISP_HW_TVI*4,      /* 1600u : 4 bytes per pixel */
+				SUB_VIDEO_DISP_HW_TVI*2,      /* 1600u : 4 bytes per pixel */
+                BUFFER_CNT_1,              /* 2u : double buffer */
+				//VDC5_RES_MD_RGB888,
+				VDC5_RES_MD_YCBCR422,
+                &res_tmp_ch0,
+                &gr_grc_v0);
+    }
+    if (error == VDC5_OK)
+    {
+        /* Settings of video read and write control for layer1 */
+        gr_grc_v1.vs  = sub_period_rect.vs;
+        gr_grc_v1.vw  = sub_period_rect.vw;
+        gr_grc_v1.hs  = sub_period_rect.hs;
+        gr_grc_v1.hw  = sub_period_rect.hw;
+        error = GRAPHICS_SetVideoReadWrite(
+                ch,
+                VDC5_LAYER_ID_1_WR,
+                (void *)FrameBuffer_Video2,
+                VIDEO_BUFFER2_STRIDE,      /* 640u : 2 bytes per pixel */
+                BUFFER_CNT_1,              /* 3u : triple buffer */
+                VDC5_RES_MD_YCBCR422,
+                &res_tmp_ch1,
+                &gr_grc_v1);
+    }
+
+#ifdef __GRAPHIC_LAYER__
+
+		#ifdef CEU_CAPTURE_IMAGE
+
+    		if (error == VDC5_OK)
+    			{
+    				period_rect.vs  = (uint16_t)LCD_CH0_DISP_VS;
+    				period_rect.vw  = (uint16_t)USEFUL_HEIGHT;
+    				//period_rect.hs  = (uint16_t)LCD_CH0_DISP_HS+200;
+    				//period_rect.hw  = (uint16_t)USEFUL_WIDTH;
+    				period_rect.hs  = (uint16_t)LCD_CH0_DISP_HS+318;
+    				period_rect.hw  = (uint16_t)USEFUL_WIDTH;
+
+    				CleanBuffer(&FrameBufferA);
+    				CEU_CaptureOneFrame(&FrameBufferA);
+    				gr_format = VDC5_GR_FORMAT_RGB565;
+
+    				//SetGraphicsData(gr_format, FrameBufferA, period_rect.hw, period_rect.vw, USEFUL_WIDTH*2);
+    				/* Create graphics surface */
+    				error = GRPDRV_GraphicsCreateSurface(
+    							ch,
+    							VDC5_LAYER_ID_2_RD,
+								FrameBufferA,
+								(((USEFUL_WIDTH * 2u) + 31u) & ~31u),
+    							gr_format,
+    							&period_rect);
+
+    			}
+		#else
+			if (error == VDC5_OK)
+			{
+				period_rect.vs  = (uint16_t)LCD_CH0_DISP_VS;
+				period_rect.vw  = (uint16_t)FRAME_BUFFER_HEIGHT;
+				period_rect.hs  = (uint16_t)LCD_CH0_DISP_HS;
+				period_rect.hw  = (uint16_t)FRAME_BUFFER_WIDTH;
+
+				framebuff = GetBackBuffer();
+				#if(PIXEL_FORMAT == PIX_FORMAT_ARGB8888)
+					gr_format = VDC5_GR_FORMAT_ARGB8888;
+				#elif(PIXEL_FORMAT == PIX_FORMAT_RGB888)
+					gr_format = VDC5_GR_FORMAT_RGB888;
+				#endif
+
+				SetGraphicsData(gr_format, framebuff, period_rect.hw, period_rect.vw, FRAME_BUFFER_STRIDE);
+				/* Create graphics surface */
+				error = GRPDRV_GraphicsCreateSurface(
+							ch,
+							VDC5_LAYER_ID_2_RD,
+							framebuff,
+							FRAME_BUFFER_STRIDE,
+							gr_format,
+							&period_rect);
+
+			}
+
+
+		#endif
+#endif
+
+    if (error == VDC5_OK)
+    {
+        /* Alpha blending in a rectangular area parameter ---------------------------*/
+        pd_disp_rect.vs_rel = 0u;
+        pd_disp_rect.vw_rel = full_period_rect.vw;
+        pd_disp_rect.hs_rel = 0u;
+        pd_disp_rect.hw_rel = full_period_rect.hw;
+        alpha_blending_rect.gr_arc     = &pd_disp_rect;        /* Alpha Blending Area of a rectangle */
+        alpha_blending_rect.alpha_rect = NULL;                 /* Alpha Blending Area in a rectangular area */
+        /* Lower-layer plane in the scaler, on/off */
+    #if 0
+        scl_und_lyr_sel.gr_vin_scl_und_sel = VDC5_OFF;         /* Layer0 lower   Layer1 current */
+    #else
+        scl_und_lyr_sel.gr_vin_scl_und_sel = VDC5_ON;          /* Layer0 current Layer1 lower   */
+    #endif
+        alpha_blending_rect.scl_und_sel    = &scl_und_lyr_sel; /* GR_VIN_SCL_UND_SEL */
+        /* Alpha blending in a rectangular area */
+        error = R_VDC5_AlphaBlendingRect(ch, VDC5_LAYER_ID_VIN_RD, VDC5_ON, &alpha_blending_rect);
+    }
+
+    if (error == VDC5_OK)
+    {
+        /* Interrupt parameter ------------------------------------------------------*/
+        interrupt.type      = VDC5_INT_TYPE_VLINE;   /* Interrupt type */
+        interrupt.line_num  = (uint16_t)0u ;         /* Line number */
+        interrupt.callback  = &IntCallbackFunc;      /* Callback function pointer */
+        /* Set interrupt service routine */
+        error = R_VDC5_CallbackISR(ch, &interrupt);
+    }
+
+    if (error == VDC5_OK)
+    {
+        /* Set layer read start process ---------------------------------------------*/
+        gr_disp_sel_tmp[VDC5_GR_TYPE_GR0] = VDC5_DISPSEL_LOWER;
+        gr_disp_sel_tmp[VDC5_GR_TYPE_GR1] = VDC5_DISPSEL_LOWER;
+#ifdef __GRAPHIC_LAYER__
+        gr_disp_sel_tmp[VDC5_GR_TYPE_GR2] = VDC5_DISPSEL_BLEND;
+        //gr_disp_sel_tmp[VDC5_GR_TYPE_GR2] = VDC5_DISPSEL_CURRENT;
+#else
+        gr_disp_sel_tmp[VDC5_GR_TYPE_GR2] = VDC5_DISPSEL_IGNORED;
+#endif
+        gr_disp_sel_tmp[VDC5_GR_TYPE_GR3] = VDC5_DISPSEL_IGNORED;
+        gr_disp_sel_tmp[VDC5_GR_TYPE_VIN] = VDC5_DISPSEL_IGNORED;   /* Not Used : Driver API sets this parameter internally*/
+        gr_disp_sel_tmp[VDC5_GR_TYPE_OIR] = VDC5_DISPSEL_IGNORED;
+        start.gr_disp_sel                 = gr_disp_sel_tmp;
+        /* Start process */
+        //error = R_VDC5_StartProcess(ch, VDC5_LAYER_ID_ALL, &start);
+        error = R_VDC5_StartProcess(ch, VDC5_LAYER_ID_0_WR, &start);
+        error = R_VDC5_StartProcess(ch, VDC5_LAYER_ID_0_RD, &start);
+
+    }
+
+    if (error == VDC5_OK)
+    {
+        while (1)
+        {
+            /* Wait Vsync */
+            WaitVsync((int32_t)VSYNC_WAIT_COUNT);
+
+#ifdef CEU_CAPTURE_IMAGE
+            if(PingPong==0)
+            {
+             // Get the  frame buffer pointer from capture driver
+             CEU_CaptureOneFrame(&FrameBufferA);
+             read_chg.gr_base        = &FrameBufferA;         /* Frame buffer base address */
+             PingPong=1;
+           	}
+            else
+            {
+             // Get the  frame buffer pointer from capture driver
+             //CEU_CaptureOneFrame(&FrameBufferB);
+             //read_chg.gr_base        = &FrameBufferB;         /* Frame buffer base address */
+             CEU_CaptureOneFrame(&FrameBufferA);
+             read_chg.gr_base        = &FrameBufferA;         /* Frame buffer base address */
+             PingPong=0;
+            }
+
+            read_chg.width_read_fb  = NULL;         /* Width of the image read from frame buffer */
+            read_chg.gr_grc         = NULL;         /* Display area */
+            read_chg.gr_disp_sel    = NULL;         /* Graphics display mode */
+            R_VDC5_ChangeReadProcess(ch,VDC5_LAYER_ID_2_RD,&read_chg);
+#endif
+        }
+    }
+
+    /* Terminate VDC5 -----------------------------------------------------------*/
+    /* Clear interrupt service routine */
+    interrupt.callback = NULL;                /* Clear callback function pointer */
+    error = R_VDC5_CallbackISR(ch, &interrupt);
+    if (error == VDC5_OK)
+    {
+        /* Stop process -------------------------------------------------------------*/
+        error = R_VDC5_StopProcess(ch, VDC5_LAYER_ID_ALL);
+    }
+
+    if (error == VDC5_OK)
+    {
+        /* Release data control -----------------------------------------------------*/
+        error = R_VDC5_ReleaseDataControl(ch, VDC5_LAYER_ID_ALL);
+    }
+
+    if (error == VDC5_OK)
+    {
+        /* Terminate VDC5 -----------------------------------------------------------*/
+        error = R_VDC5_Terminate(ch, &quit_func, (uint32_t)ch);
+        if (error == VDC5_OK)
+        {
+            /* Do-Nothing */
+        }
+    }
+}   /* End of function Video_2in1Sample() */
+

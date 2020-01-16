@@ -1,0 +1,206 @@
+/*******************************************************************************
+* DISCLAIMER
+* This software is supplied by Renesas Electronics Corporation and is only
+* intended for use with Renesas products. No other uses are authorized. This
+* software is owned by Renesas Electronics Corporation and is protected under
+* all applicable laws, including copyright laws.
+* THIS SOFTWARE IS PROVIDED "AS IS" AND RENESAS MAKES NO WARRANTIES REGARDING
+* THIS SOFTWARE, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING BUT NOT
+* LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+* AND NON-INFRINGEMENT. ALL SUCH WARRANTIES ARE EXPRESSLY DISCLAIMED.
+* TO THE MAXIMUM EXTENT PERMITTED NOT PROHIBITED BY LAW, NEITHER RENESAS
+* ELECTRONICS CORPORATION NOR ANY OF ITS AFFILIATED COMPANIES SHALL BE LIABLE
+* FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES FOR
+* ANY REASON RELATED TO THIS SOFTWARE, EVEN IF RENESAS OR ITS AFFILIATES HAVE
+* BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+* Renesas reserves the right, without notice, to make changes to this software
+* and to discontinue the availability of this software. By using this software,
+* you agree to the additional terms and conditions found by accessing the
+* following link:
+* http://www.renesas.com/disclaimer
+*
+*******************************************************************************/
+/*******************************************************************************
+* Copyright (C) 2013 Renesas Electronics Corporation. All rights reserved.
+*******************************************************************************/
+/******************************************************************************
+* File Name     : renesas.S
+* Device(s)     : RZ/A1H RSK2+RZA1H
+* Tool-Chain    : GNUARM-RZv13.01-EABI
+* H/W Platform  : RSK2+RZA1H CPU Board
+* Description   : Renesas logo for TFT/HDMI screen
+******************************************************************************/
+/******************************************************************************
+* History       : DD.MM.YYYY Version Description
+*               : 18.06.2013 1.00
+******************************************************************************/
+
+    .text
+    .code 32
+    .global __image_btn1
+    .global __dash1
+    .global __VS024
+    .global	_BMPLOGO
+    .global _CHARTLOGO
+    .global _3DBTNS
+    .global _W_CLASSIC
+    .global _W_HOTb
+		.global _W_HOTw   
+		.global _BN0_ADDR 
+		.global _BN1_ADDR 
+		.global _BN2_ADDR 
+		.global _BN3_ADDR 
+		.global _BN4_ADDR 
+		.global _BN5_ADDR 
+		.global _BN6_ADDR 
+		.global _BN7_ADDR 
+		.global _BN8_ADDR 
+		.global _BN9_ADDR 
+  
+   		.global _CLOCKS_ADDR			 
+   		.global _RLOGO_ADDR		 
+   		.global _RUS_ADDR 
+   		.global _RZS_ADDR
+   		      
+   		.global _SPDWARN_ADDR      
+   		.global _KMH_ADDR          
+   		.global _HUD1_ADDR        
+/* 		.global _HUD2_ADDR          */
+/* 		.global _HUD3_ADDR          */
+/* 		.global _HUD4_ADDR          */
+/* 		.global _HUD5_ADDR          */
+/* 		.global _HUD7_ADDR          */
+/* 		.global _HUD8_ADDR          */
+/* 		.global _HUD9_ADDR          */
+/* 		.global _HUDA_ADDR          */
+/* 		.global _HUDB_ADDR				  */
+/* 		.global _HUD101_ADDR			  */
+/* 		.global _HUD102_ADDR		    */
+/* 		.global _HUD103_ADDR		    */
+/* 		.global _HUD104_ADDR		    */
+/* 		.global _HUD105_ADDR				*/
+   		.global _RZ1_ADDR    
+   		.global _RZ2_ADDR   
+   		.global _RZ3_ADDR   
+   		.global _RZ4_ADDR   
+   		.global _RZ5_ADDR   
+   		.global _RZ6_ADDR   		
+		 
+__image_btn1:
+@    .incbin "320200.bmp"
+__dash1: 
+/* 			.incbin "dash800480.bmp" 		 */
+/*   	.incbin "button4.bmp"			  	*/	 
+
+__VS024:
+/*			.incbin "vs024.bmp" 				*/
+			
+_BMPLOGO:
+@ 			.incbin "bmplogo.bmp"				 
+_CHARTLOGO:
+/* 			.incbin "chartlogo.bmp" 		*/
+_3DBTNS:
+/* 			.incbin "3dbtns.bmp" 				*/
+ 						
+_W_CLASSIC:
+/* 			.incbin "wclassic.bmp" 			*/
+_W_HOTw:
+/* 			.incbin "whotw.bmp" 				*/
+_W_HOTb:
+/* 			.incbin "whotb.bmp" 				*/				
+			
+_BN0_ADDR:
+/*				.incbin "BN0S.bmp" 				*/
+_BN1_ADDR:
+/*				.incbin "BN1S.bmp" */
+_BN2_ADDR:
+/*				.incbin "BN2S.bmp" */
+_BN3_ADDR:
+/*				.incbin "BN3S.bmp" */
+_BN4_ADDR:
+/*				.incbin "BN4S.bmp" */
+_BN5_ADDR:
+/*				.incbin "BN5S.bmp" */
+_BN6_ADDR: 
+/*				.incbin "BN6S.bmp" */
+_BN7_ADDR:
+/*				.incbin "BN7S.bmp" */
+_BN8_ADDR:
+/*				.incbin "BN8S.bmp" */
+_BN9_ADDR:
+/*				.incbin "BN9S.bmp" */
+ 
+_CLOCKS_ADDR:  
+  				.incbin "clocks.bmp"    
+_RLOGO_ADDR:  
+           .incbin "Renelogo.bmp" 
+ 
+_RUS_ADDR:  
+  				.incbin "RenesasUS.bmp" 
+ 
+_RZS_ADDR:  
+  				.incbin "RenesasRZS.bmp" 
+  				
+_SPDWARN_ADDR:
+@  				.incbin "speedwarn.bmp" 
+ 				
+_KMH_ADDR:  
+@  				.incbin "kmh.bmp"  
+ 
+_RZ1_ADDR:  
+@   				.incbin "rz1.bmp"  
+_RZ2_ADDR:  
+@   				.incbin "rz2.bmp"  
+_RZ3_ADDR:  
+@  				.incbin "rz3.bmp"  
+_RZ4_ADDR:  
+@  				.incbin "rz4.bmp"  
+_RZ5_ADDR:  
+@  				.incbin "rz5.bmp"   
+_RZ6_ADDR:  
+@  				.incbin "rz6.bmp"     				
+   				
+   				
+   				
+   				
+   				
+   				
+   				
+   				
+   				
+   				
+   				 
+
+/*		_HUD1_ADDR: 											*/
+/*						.incbin "HUD1.bmp"       	*/
+/*		_HUD2_ADDR:                      */
+/*						.incbin "HUD2.bmp"       */
+/*		_HUD3_ADDR:                      */
+/*						.incbin "HUD3.bmp"       */
+/*		_HUD4_ADDR:                      */
+/*						.incbin "HUD4.bmp"       */
+/*		_HUD5_ADDR:                      */
+/*						.incbin "HUD5.bmp"       */
+/*		_HUD7_ADDR:                      */
+/*						.incbin "HUD7.bmp"       */
+/*		_HUD8_ADDR:                      */
+/*						.incbin "HUD8.bmp"       */
+/*		_HUD9_ADDR:                      */
+/*						.incbin "HUD9.bmp"       */
+/*		_HUDA_ADDR:                      */
+/*						.incbin "HUDA.bmp"       */
+/*		_HUDB_ADDR:                      */
+/*						.incbin "HUDB.bmp"       */
+/*		_HUD101_ADDR:                    */
+/*						.incbin "HUD101.bmp" 			*/	
+/*		_HUD102_ADDR:                    */
+/*						.incbin "HUD102.bmp" 	   */
+/*		_HUD103_ADDR:                    */
+/*						.incbin "HUD103.bmp" 	   */
+/*		_HUD104_ADDR:                    */
+/*						.incbin "HUD104.bmp" 	   */
+/*		_HUD105_ADDR:                    */
+/*						.incbin "HUD105.bmp" 	   */
+ 
+ 
+    .end 

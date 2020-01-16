@@ -1,0 +1,9 @@
+eclipse.preferences.version=1
+environment/project/com.renesas.cdt.rz.hardwaredebug.win32.configuration.Id.1682845604/CWD/delimiter=;
+environment/project/com.renesas.cdt.rz.hardwaredebug.win32.configuration.Id.1682845604/CWD/operation=replace
+environment/project/com.renesas.cdt.rz.hardwaredebug.win32.configuration.Id.1682845604/CWD/value=${workspace_loc\:/${ProjName}}\\HardwareDebug
+environment/project/com.renesas.cdt.rz.hardwaredebug.win32.configuration.Id.1682845604/PWD/delimiter=;
+environment/project/com.renesas.cdt.rz.hardwaredebug.win32.configuration.Id.1682845604/PWD/operation=replace
+environment/project/com.renesas.cdt.rz.hardwaredebug.win32.configuration.Id.1682845604/PWD/value=${workspace_loc\:/${ProjName}}\\HardwareDebug
+environment/project/com.renesas.cdt.rz.hardwaredebug.win32.configuration.Id.1682845604/append=true
+environment/project/com.renesas.cdt.rz.hardwaredebug.win32.configuration.Id.1682845604/appendContributed=true

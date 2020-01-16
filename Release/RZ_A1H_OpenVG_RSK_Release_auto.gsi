@@ -1,0 +1,88 @@
+SECTIONS
+{
+	.fvectors 0x20020000 : AT (0x20020000)
+	{
+		KEEP(*(.fvectors))
+	}
+	.text 0x20020100 : AT (0x20020100)
+	{
+		*(.text)
+	}
+	.rvectors : 
+	{
+		_rvectors_start = .;
+		*(.rvectors)
+		_rvectors_end = .;
+	}
+	.init : 
+	{
+		*(.init)
+		PROVIDE_HIDDEN (__exidx_start = .);
+		PROVIDE_HIDDEN (__exidx_end = .);
+	}
+	.fini : 
+	{
+		*(.fini)
+	}
+	.got : 
+	{
+		*(.got)
+		*(.got.plt)
+	}
+	.rodata : 
+	{
+		*(.rodata)
+		*(.rodata.*)
+		_erodata = .;
+	}
+	.eh_frame_hdr : 
+	{
+		*(.eh_frame_hdr)
+	}
+	.eh_frame : 
+	{
+		*(.eh_frame)
+	}
+	.jcr : 
+	{
+		*(.jcr)
+	}
+	.tors : 
+	{
+		__CTOR_LIST__ = .;
+		. = ALIGN(2);
+		__ctors = .;
+		*(.ctors)
+		__ctors_end = .;
+		__CTOR_END__ = .;
+		__DTOR_LIST__ = .;
+		___dtors = .;
+		*(.dtors)
+		___dtors_end = .;
+		__DTOR_END__ = .;
+		. = ALIGN(2);
+		_mdata = .;
+	}
+	.data 0x20060100 : AT (_mdata)
+	{
+		_data = .;
+		*(.data)
+		_edata = .;
+	}
+	.bss : 
+	{
+		PROVIDE(__bss_start__ = .);
+		_bss = .;
+		*(.bss)
+		*(.bss.**)
+		*(COMMON)
+		PROVIDE(__bss_end__ = .);
+		_ebss = .;
+		_end = .;
+		PROVIDE(end = .);
+	}
+	.stack 0x20061100 (NOLOAD)  : AT (0x20061100)
+	{
+		_stack = .;
+	}
+}

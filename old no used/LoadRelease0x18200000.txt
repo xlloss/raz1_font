@@ -1,0 +1,13 @@
+rx 100
+exec SetSkipProgOnCRCMatch=0
+
+//
+// Download application into QSPI flash
+//
+
+loadbin Release/RZ_A1H_OpenVG_RSK.bin,0x18200000
+verifybin Release/RZ_A1H_OpenVG_RSK.bin,0x18200000
+
+exit
+
+
